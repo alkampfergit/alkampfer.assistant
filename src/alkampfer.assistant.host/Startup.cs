@@ -7,7 +7,8 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllersWithViews();
+        services.AddRazorPages();
+        services.AddServerSideBlazor();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -18,7 +19,7 @@ public class Startup
         }
         else
         {
-            app.UseExceptionHandler("/Home/Error");
+            app.UseExceptionHandler("/_Host");
             app.UseHsts();
         }
 
@@ -27,13 +28,12 @@ public class Startup
 
         app.UseRouting();
 
-        app.UseAuthorization();
+        // app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+            endpoints.MapBlazorHub();
+            endpoints.MapFallbackToPage("/_Host");
         });
     }
 }
