@@ -2,6 +2,101 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h2" GutterBottom="true" Color="Color.Primary">
+            <MudIcon Icon="Icons.Material.Filled.Home" Class="mr-3" />
+            Welcome to Alkampfer Assistant!
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Your intelligent assistant is ready to help you with various tasks. Explore the features below to get started.
+        </MudText>
 
-Welcome to your new app.
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardContent>
+                        <div class="d-flex align-center mb-3">
+                            <MudIcon Icon="Icons.Material.Filled.Chat" Color="Color.Success" Class="mr-3" />
+                            <MudText Typo="Typo.h6">Chat Assistant</MudText>
+                        </div>
+                        <MudText Typo="Typo.body2">
+                            Engage in intelligent conversations and get help with your questions.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Success">Start Chat</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardContent>
+                        <div class="d-flex align-center mb-3">
+                            <MudIcon Icon="Icons.Material.Filled.Analytics" Color="Color.Info" Class="mr-3" />
+                            <MudText Typo="Typo.h6">Data Analysis</MudText>
+                        </div>
+                        <MudText Typo="Typo.body2">
+                            Analyze and visualize your data with powerful AI-driven insights.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Info">Analyze Data</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardContent>
+                        <div class="d-flex align-center mb-3">
+                            <MudIcon Icon="Icons.Material.Filled.AutoAwesome" Color="Color.Warning" Class="mr-3" />
+                            <MudText Typo="Typo.h6">AI Tools</MudText>
+                        </div>
+                        <MudText Typo="Typo.body2">
+                            Access various AI-powered tools to boost your productivity.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Warning">Explore Tools</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-6" />
+
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                    <MudText Typo="Typo.h6" Class="mb-2">Getting Started</MudText>
+                    <MudText Typo="Typo.body2">
+                        This application is powered by MudBlazor and .NET 9. Explore the navigation menu to discover all available features.
+                    </MudText>
+                </MudAlert>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">
+                    <MudText Typo="Typo.h6" Class="mb-2">Status</MudText>
+                    <MudText Typo="Typo.body2">
+                        All systems are operational and ready to assist you.
+                    </MudText>
+                    <MudProgressLinear Color="Color.Success" Value="100" Class="mt-3" />
+                </MudAlert>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-6" />
+
+        <div class="d-flex justify-center">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                <MudButton StartIcon="Icons.Material.Filled.Help">Help</MudButton>
+                <MudButton StartIcon="Icons.Material.Filled.Settings">Settings</MudButton>
+                <MudButton StartIcon="Icons.Material.Filled.Info">About</MudButton>
+            </MudButtonGroup>
+        </div>
+    </MudPaper>
+</MudContainer>
