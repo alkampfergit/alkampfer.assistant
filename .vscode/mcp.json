@@ -1,0 +1,9 @@
+{
+  "servers": [
+    {
+      "name": "My MCP Server",
+      "url": "http://localhost:1234",
+      "type": "my-mcp-type"
+    }
+  ]
+}
