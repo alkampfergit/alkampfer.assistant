@@ -1,9 +1,10 @@
 using MongoDB.Driver;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Alkampfer.Assistant.Core.MongoDbIntegration;
 
-public class MongoRepository<T> : IMongoRepository<T>
+public class MongoRepository<T> : IMongoRepository<T> where T : MongoBaseClass
 {
     private readonly IMongoCollection<T> _collection;
 
@@ -14,22 +15,17 @@ public class MongoRepository<T> : IMongoRepository<T>
         _collection = database.GetCollection<T>(collectionName);
     }
 
-    public async Task SaveAsync(T entity)
+    public async Task SaveAsync(T entity, CancellationToken cancellationToken = default)
     {
-        // Assumes entity has an Id property of type string
-        var idProperty = typeof(T).GetProperty("Id");
-        if (idProperty == null)
-            throw new Exception("Entity must have an Id property");
-        var id = idProperty.GetValue(entity)?.ToString();
-        if (string.IsNullOrEmpty(id))
+        if (string.IsNullOrEmpty(entity.Id))
             throw new Exception("Id property must not be null or empty");
-        var filter = Builders<T>.Filter.Eq("Id", id);
-        await _collection.ReplaceOneAsync(filter, entity, new ReplaceOptions { IsUpsert = true });
+        var filter = Builders<T>.Filter.Eq(x => x.Id, entity.Id);
+        await _collection.ReplaceOneAsync(filter, entity, new ReplaceOptions { IsUpsert = true }, cancellationToken);
     }
 
-    public async Task<T> LoadByIdAsync(string id)
+    public async Task<T> LoadByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<T>.Filter.Eq("Id", id);
-        return await _collection.Find(filter).FirstOrDefaultAsync();
+        var filter = Builders<T>.Filter.Eq(x => x.Id, id);
+        return await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
     }
 }
