@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,8 @@ public class MongoRepository<T> : IRepository<T> where T : BaseEntity
         _collection = database.GetCollection<T>(collectionName);
     }
 
+    public IQueryable<T> AsQueryable => _collection.AsQueryable();
+
     public async Task SaveAsync(T entity, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(entity.Id))
@@ -27,11 +30,6 @@ public class MongoRepository<T> : IRepository<T> where T : BaseEntity
     {
         var filter = Builders<T>.Filter.Eq(x => x.Id, id);
         return await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _collection.Find(_ => true).ToListAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)

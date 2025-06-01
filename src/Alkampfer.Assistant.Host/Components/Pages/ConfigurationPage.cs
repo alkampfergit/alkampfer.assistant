@@ -28,8 +28,7 @@ namespace Alkampfer.Assistant.Host.Components.Pages
         {
             try
             {
-                var modelDefinitions = await Repository.GetAllAsync();
-                ModelDefinitions = modelDefinitions.ToList();
+                ModelDefinitions = Repository.AsQueryable.ToList();
             }
             catch (Exception ex)
             {

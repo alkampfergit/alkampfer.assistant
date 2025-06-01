@@ -15,6 +15,16 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
         _collectionName = collectionName;
     }
 
+    public IQueryable<T> AsQueryable
+    {
+        get
+        {
+            using var db = new LiteDatabase(_connectionString);
+            var collection = db.GetCollection<T>(_collectionName);
+            return collection.FindAll().AsQueryable();
+        }
+    }
+
     public async Task SaveAsync(T entity, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(entity.Id))
@@ -35,16 +45,6 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
             using var db = new LiteDatabase(_connectionString);
             var collection = db.GetCollection<T>(_collectionName);
             return collection.FindById(id);
-        }, cancellationToken);
-    }
-
-    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await Task.Run(() =>
-        {
-            using var db = new LiteDatabase(_connectionString);
-            var collection = db.GetCollection<T>(_collectionName);
-            return collection.FindAll().ToList();
         }, cancellationToken);
     }
 

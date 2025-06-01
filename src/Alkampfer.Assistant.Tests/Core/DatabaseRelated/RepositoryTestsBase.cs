@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Alkampfer.Assistant.Core;
@@ -38,7 +39,7 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entityWithNullId = new TestEntity { Id = null, Name = "Test" };
+        var entityWithNullId = new TestEntity { Id = null!, Name = "Test" };
         var entityWithEmptyId = new TestEntity { Id = "", Name = "Test" };
 
         // Act & Assert
@@ -195,6 +196,198 @@ public abstract class RepositoryTestsBase
         Assert.Equal("special-chars-!@#$%^&*()_+-=[]{}|;:,.<>?", loadedEntity.Id);
         Assert.Equal("Special ID Entity", loadedEntity.Name);
         Assert.Equal(999, loadedEntity.Value);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingEntity_ShouldRemoveEntity()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity = new TestEntity
+        {
+            Id = "delete-test",
+            Name = "Entity to Delete",
+            Value = 100
+        };
+
+        await repository.SaveAsync(entity);
+        
+        // Verify entity exists
+        var existingEntity = await repository.LoadByIdAsync("delete-test");
+        Assert.NotNull(existingEntity);
+
+        // Act
+        await repository.DeleteAsync("delete-test");
+
+        // Assert
+        var deletedEntity = await repository.LoadByIdAsync("delete-test");
+        Assert.Null(deletedEntity);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithNonExistentEntity_ShouldNotThrow()
+    {
+        // Arrange
+        var repository = CreateRepository();
+
+        // Act & Assert - Should not throw for non-existent entity
+        await repository.DeleteAsync("non-existent-id");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithCancellationToken_ShouldRespectCancellation()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => repository.DeleteAsync("test-id", cts.Token));
+    }
+
+    [Fact]
+    public void AsQueryable_WithNoEntities_ShouldReturnEmptyQueryable()
+    {
+        // Arrange
+        var repository = CreateRepository();
+
+        // Act
+        var queryable = repository.AsQueryable;
+
+        // Assert
+        Assert.NotNull(queryable);
+        Assert.Equal(0, queryable.Count());
+    }
+
+    [Fact]
+    public async Task AsQueryable_WithEntities_ShouldReturnAllEntities()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "query-1", Name = "First", Value = 10 };
+        var entity2 = new TestEntity { Id = "query-2", Name = "Second", Value = 20 };
+        var entity3 = new TestEntity { Id = "query-3", Name = "Third", Value = 30 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+        await repository.SaveAsync(entity3);
+
+        // Act
+        var queryable = repository.AsQueryable;
+
+        // Assert
+        Assert.NotNull(queryable);
+        Assert.Equal(3, queryable.Count());
+        
+        var entities = queryable.ToList();
+        Assert.Contains(entities, e => e.Id == "query-1" && e.Name == "First" && e.Value == 10);
+        Assert.Contains(entities, e => e.Id == "query-2" && e.Name == "Second" && e.Value == 20);
+        Assert.Contains(entities, e => e.Id == "query-3" && e.Name == "Third" && e.Value == 30);
+    }
+
+    [Fact]
+    public async Task AsQueryable_WithLinqQueries_ShouldSupportFiltering()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "filter-1", Name = "Apple", Value = 5 };
+        var entity2 = new TestEntity { Id = "filter-2", Name = "Banana", Value = 15 };
+        var entity3 = new TestEntity { Id = "filter-3", Name = "Cherry", Value = 25 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+        await repository.SaveAsync(entity3);
+
+        // Act & Assert - Filter by Value
+        var highValueEntities = repository.AsQueryable.Where(e => e.Value > 10).ToList();
+        Assert.Equal(2, highValueEntities.Count);
+        Assert.Contains(highValueEntities, e => e.Name == "Banana");
+        Assert.Contains(highValueEntities, e => e.Name == "Cherry");
+
+        // Act & Assert - Filter by Name
+        var specificEntity = repository.AsQueryable.FirstOrDefault(e => e.Name == "Apple");
+        Assert.NotNull(specificEntity);
+        Assert.Equal("filter-1", specificEntity.Id);
+        Assert.Equal(5, specificEntity.Value);
+    }
+
+    [Fact]
+    public async Task AsQueryable_WithLinqQueries_ShouldSupportOrdering()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "order-1", Name = "Zebra", Value = 30 };
+        var entity2 = new TestEntity { Id = "order-2", Name = "Apple", Value = 10 };
+        var entity3 = new TestEntity { Id = "order-3", Name = "Banana", Value = 20 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+        await repository.SaveAsync(entity3);
+
+        // Act & Assert - Order by Name
+        var entitiesByName = repository.AsQueryable.OrderBy(e => e.Name).ToList();
+        Assert.Equal(3, entitiesByName.Count);
+        Assert.Equal("Apple", entitiesByName[0].Name);
+        Assert.Equal("Banana", entitiesByName[1].Name);
+        Assert.Equal("Zebra", entitiesByName[2].Name);
+
+        // Act & Assert - Order by Value descending
+        var entitiesByValueDesc = repository.AsQueryable.OrderByDescending(e => e.Value).ToList();
+        Assert.Equal(3, entitiesByValueDesc.Count);
+        Assert.Equal(30, entitiesByValueDesc[0].Value);
+        Assert.Equal(20, entitiesByValueDesc[1].Value);
+        Assert.Equal(10, entitiesByValueDesc[2].Value);
+    }
+
+    [Fact]
+    public async Task AsQueryable_AfterDelete_ShouldReflectChanges()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "reflect-1", Name = "Keep", Value = 100 };
+        var entity2 = new TestEntity { Id = "reflect-2", Name = "Delete", Value = 200 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+
+        // Verify both entities exist
+        Assert.Equal(2, repository.AsQueryable.Count());
+
+        // Act
+        await repository.DeleteAsync("reflect-2");
+
+        // Assert
+        var queryable = repository.AsQueryable;
+        Assert.Equal(1, queryable.Count());
+        
+        var remainingEntity = queryable.First();
+        Assert.Equal("reflect-1", remainingEntity.Id);
+        Assert.Equal("Keep", remainingEntity.Name);
+    }
+
+    [Fact]
+    public async Task AsQueryable_AfterUpdate_ShouldReflectChanges()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var originalEntity = new TestEntity { Id = "update-query", Name = "Original", Value = 100 };
+        await repository.SaveAsync(originalEntity);
+
+        // Verify original state
+        var beforeUpdate = repository.AsQueryable.First(e => e.Id == "update-query");
+        Assert.Equal("Original", beforeUpdate.Name);
+        Assert.Equal(100, beforeUpdate.Value);
+
+        // Act - Update entity
+        var updatedEntity = new TestEntity { Id = "update-query", Name = "Updated", Value = 200 };
+        await repository.SaveAsync(updatedEntity);
+
+        // Assert
+        var afterUpdate = repository.AsQueryable.First(e => e.Id == "update-query");
+        Assert.Equal("Updated", afterUpdate.Name);
+        Assert.Equal(200, afterUpdate.Value);
     }
 }
 
