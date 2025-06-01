@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Fasterflect" Version="3.0.0" />
+    <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
   </ItemGroup>
 
