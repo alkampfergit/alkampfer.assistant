@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Alkampfer.Assistant.Core;
 
-
+public interface IIdentityManager
 {
     /// <summary>
     /// Registers an identity type with the manager.
