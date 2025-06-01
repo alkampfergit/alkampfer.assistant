@@ -8,17 +8,36 @@
 <h1>Configuration</h1>
 
 <MudPaper Class="pa-4">
-    <MudText Typo="Typo.h6">Add URLs for configuration</MudText>
-    <MudTextField @bind-Value="NewUrl" Label="New URL" Variant="Variant.Outlined" Class="my-2" />
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddUrl">Add URL</MudButton>
+    <MudText Typo="Typo.h6">Add Model Definition</MudText>
+    <MudTextField @bind-Value="NewModelDefinition.Url" Label="URL" Variant="Variant.Outlined" Class="my-2" />
+    <MudTextField @bind-Value="NewModelDefinition.ApiKey" Label="API Key" Variant="Variant.Outlined" Class="my-2" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => AddModelDefinitionAsync())">Add Model Definition</MudButton>
 
-<MudList Class="mt-4" T="string">
-    @foreach (var url in Urls)
-    {
-        <MudListItem T="string">
-            <MudText>@url</MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveUrl(url)" />
-        </MudListItem>
-    }
-</MudList>
+    <MudDivider Class="my-4" />
+    <MudText Typo="Typo.h6">Model Definitions</MudText>
+    <MudList Class="mt-4" T="ModelDefinitionDto">
+        @foreach (var modelDef in ModelDefinitions)
+        {
+            <MudListItem T="ModelDefinitionDto">
+                <MudText>Url: @modelDef.Url</MudText>
+                <MudText>ApiKey: @modelDef.ApiKey</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => StartAddModelConfig(modelDef.Id!))">Add Model</MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveModelDefinitionAsync(modelDef.Id!))" />
+                <MudList Class="ml-4 mt-2" T="ModelConfigurationDto">
+                    @foreach (var model in modelDef.Models)
+                    {
+                        <MudListItem T="ModelConfigurationDto">
+                            <MudText>Model: @model.ModelName - @model.ModelDescription</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+                @if (EditingModelId == modelDef.Id)
+                {
+                    <MudTextField @bind-Value="NewModelConfig.ModelName" Label="Model Name" Variant="Variant.Outlined" Class="my-2" />
+                    <MudTextField @bind-Value="NewModelConfig.ModelDescription" Label="Description" Variant="Variant.Outlined" Class="my-2" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddModelConfig">Add</MudButton>
+                }
+            </MudListItem>
+        }
+    </MudList>
 </MudPaper>

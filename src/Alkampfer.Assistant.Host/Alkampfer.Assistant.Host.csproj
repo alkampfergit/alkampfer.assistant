@@ -6,5 +6,8 @@
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Serilog.AspNetCore" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Alkampfer.Assistant.Core/Alkampfer.Assistant.Core.csproj" />
+  </ItemGroup>
 
 </Project>

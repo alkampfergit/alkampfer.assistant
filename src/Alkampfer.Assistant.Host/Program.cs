@@ -1,3 +1,6 @@
+using Alkampfer.Assistant.Core.LiteDbIntegration;
+using Alkampfer.Assistant.Core.Configuration;
+using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.Host;
 using Serilog;
 using Alkampfer.Assistant.Host.Components;
@@ -22,6 +25,10 @@ builder.Services.AddRazorComponents()
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Register LiteDbRepository for IRepository<ModelDefinition>
+builder.Services.AddSingleton<IRepository<ModelDefinition>>(sp =>
+    new LiteDbRepository<ModelDefinition>("Filename=ModelDefinitions.db;Mode=Shared", "model_definitions"));
 
 var app = builder.Build();
 
