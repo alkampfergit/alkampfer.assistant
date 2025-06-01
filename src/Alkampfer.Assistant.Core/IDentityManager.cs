@@ -15,10 +15,15 @@ public class IdentityManager
     {
         var type = typeof(TIdentity);
         
+        // Ensure the type has a constructor with a single long parameter
+        var ctor = type.Constructor(typeof(long));
+        if (ctor == null)
+            throw new InvalidOperationException($"Identity type '{type.Name}' must have a constructor with a single long parameter");
+
         // Create an instance using the long constructor to get the prefix
         var instance = (Identity)type.CreateInstance(0L);
         var prefix = (string)instance.GetPropertyValue("Prefix")!;
-        
+
         if (string.IsNullOrWhiteSpace(prefix))
             throw new InvalidOperationException($"Prefix for type {type.Name} cannot be null or empty");
 
