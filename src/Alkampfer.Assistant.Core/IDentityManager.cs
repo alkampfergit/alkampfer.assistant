@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using Fasterflect;
 
 namespace Alkampfer.Assistant.Core;
 
@@ -13,19 +14,11 @@ public class IdentityManager
     public void RegisterIdentityType<TIdentity>() where TIdentity : Identity
     {
         var type = typeof(TIdentity);
-        // Find the Prefix property (protected abstract in base, must be implemented in derived)
-        var prefixProp = type.GetProperty("Prefix", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        if (prefixProp == null)
-            throw new InvalidOperationException($"Type {type.Name} does not implement Prefix property");
-
-        // Create a dummy instance to get the prefix
-        // Try to find a constructor with a single long parameter
-        var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(long) }, null);
-        if (ctor == null)
-            throw new InvalidOperationException($"Type {type.Name} must have a constructor with a single long parameter");
-
-        var instance = (Identity)ctor.Invoke(new object[] { 0L });
-        var prefix = (string)prefixProp.GetValue(instance)!;
+        
+        // Create an instance using the long constructor to get the prefix
+        var instance = (Identity)type.CreateInstance(0L);
+        var prefix = (string)instance.GetPropertyValue("Prefix")!;
+        
         if (string.IsNullOrWhiteSpace(prefix))
             throw new InvalidOperationException($"Prefix for type {type.Name} cannot be null or empty");
 
@@ -45,18 +38,14 @@ public class IdentityManager
         var prefix = parts[0];
         if (string.IsNullOrWhiteSpace(prefix))
             throw new ArgumentException($"Prefix cannot be null or empty in identity '{value}'", nameof(value));
-            
+
         if (!_prefixToType.TryGetValue(prefix, out var type))
             throw new InvalidOperationException($"Unknown identity prefix: '{prefix}'");
 
-        // Find constructor with a single string parameter
-        var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(string) }, null);
-        if (ctor == null)
-            throw new InvalidOperationException($"Type {type.Name} must have a constructor with a single string parameter");
-
+        // Use Fasterflect to create instance with string constructor
         try
         {
-            return (Identity)ctor.Invoke(new object[] { value });
+            return (Identity)type.CreateInstance(value);
         }
         catch (TargetInvocationException ex) when (ex.InnerException != null)
         {
