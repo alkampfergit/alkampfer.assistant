@@ -2,6 +2,8 @@
 
 <PageTitle>Home</PageTitle>
 
+@inject MudBlazor.ISnackbar Snackbar
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
     <MudPaper Class="pa-8" Elevation="3">
         <MudText Typo="Typo.h2" GutterBottom="true" Color="Color.Primary">
@@ -91,12 +93,26 @@
 
         <MudDivider Class="my-6" />
 
-        <div class="d-flex justify-center">
+        <div class="d-flex justify-center mb-4">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
                 <MudButton StartIcon="Icons.Material.Filled.Help">Help</MudButton>
                 <MudButton StartIcon="Icons.Material.Filled.Settings">Settings</MudButton>
                 <MudButton StartIcon="Icons.Material.Filled.Info">About</MudButton>
             </MudButtonGroup>
         </div>
+        <div class="d-flex justify-center">
+            <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="ShowTestSnackbar">
+                Test Snackbar
+            </MudButton>
+        </div>
     </MudPaper>
 </MudContainer>
+
+
+@code {
+    void ShowTestSnackbar()
+    {
+        Snackbar.Add("This is a test MudBlazor Snackbar!", MudBlazor.Severity.Normal);
+    }
+}
+

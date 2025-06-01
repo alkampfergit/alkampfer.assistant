@@ -5,6 +5,7 @@ using Alkampfer.Assistant.Host;
 using Serilog;
 using Alkampfer.Assistant.Host.Components;
 using MudBlazor.Services;
+using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Add MudBlazor services
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{ 
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+});
 
 // Register LiteDbRepository for IRepository<ModelDefinition>
 builder.Services.AddSingleton<IRepository<ModelDefinition>>(sp =>
