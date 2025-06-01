@@ -9,11 +9,10 @@ using Alkampfer.Assistant.Core;
 
 namespace Alkampfer.Assistant.Host.Components.Pages
 {
-    public partial class ConfigurationPage : ComponentBase
+    public partial class ConfigurationPage : BasePage
     {
         [Inject] public IRepository<ModelDefinition> Repository { get; set; } = default!;
-        [Inject] public ISnackbar Snackbar { get; set; } = default!;
-
+        
         public List<ModelDefinition> ModelDefinitions { get; set; } = new();
         public ModelDefinition NewModelDefinition { get; set; } = new() { Url = "", ApiKey = "" };
         public ModelConfiguration NewModelConfig { get; set; } = new() { ModelName = "", ModelDescription = "" };

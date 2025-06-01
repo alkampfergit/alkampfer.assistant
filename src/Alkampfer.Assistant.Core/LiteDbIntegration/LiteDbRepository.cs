@@ -21,7 +21,7 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var db = new LiteDatabase(_connectionString);
             var collection = db.GetCollection<T>(_collectionName);
-            return collection.FindAll().AsQueryable();
+            return collection.FindAll().ToList().AsQueryable();
         }
     }
 
