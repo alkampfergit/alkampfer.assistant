@@ -21,6 +21,9 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
         {
             using var db = new LiteDatabase(_connectionString);
             var collection = db.GetCollection<T>(_collectionName);
+
+            //really not production ready code. Consider if the 
+            //repository could be made disposable and using a factory.
             return collection.FindAll().ToList().AsQueryable();
         }
     }
