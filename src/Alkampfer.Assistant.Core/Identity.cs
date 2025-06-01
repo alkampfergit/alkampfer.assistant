@@ -10,7 +10,7 @@ public abstract class Identity : IEquatable<Identity>
             throw new ArgumentException("Identity value cannot be null or empty", nameof(value));
 
         Value = value;
-        
+
         // Parse the value to extract prefix and numeric id
         var parts = value.Split('/');
         if (parts.Length != 2)
