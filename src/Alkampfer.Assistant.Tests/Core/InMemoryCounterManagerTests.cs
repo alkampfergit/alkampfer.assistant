@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Tests.Core.DatabaseRelated;
 using Xunit;
 
 namespace Alkampfer.Assistant.Tests.Core;

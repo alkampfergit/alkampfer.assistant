@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Alkampfer.Assistant.Core;
 using Xunit;
 
-namespace Alkampfer.Assistant.Tests.Core;
+namespace Alkampfer.Assistant.Tests.Core.DatabaseRelated;
 
 public abstract class CounterManagerTestsBase
 {

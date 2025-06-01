@@ -8,7 +8,7 @@ using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.Core.LiteDbIntegration;
 using Xunit;
 
-namespace Alkampfer.Assistant.Tests.Core;
+namespace Alkampfer.Assistant.Tests.Core.DatabaseRelated;
 
 public class LiteDbCounterManagerTests : CounterManagerTestsBase, IDisposable
 {
