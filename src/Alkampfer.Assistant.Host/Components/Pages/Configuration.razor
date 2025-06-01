@@ -1,0 +1,24 @@
+@page "/configuration"
+
+@using MudBlazor
+@inherits ConfigurationPage
+
+<PageTitle>Configuration</PageTitle>
+
+<h1>Configuration</h1>
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h6">Add URLs for configuration</MudText>
+    <MudTextField @bind-Value="NewUrl" Label="New URL" Variant="Variant.Outlined" Class="my-2" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddUrl">Add URL</MudButton>
+
+<MudList Class="mt-4" T="string">
+    @foreach (var url in Urls)
+    {
+        <MudListItem T="string">
+            <MudText>@url</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveUrl(url)" />
+        </MudListItem>
+    }
+</MudList>
+</MudPaper>
