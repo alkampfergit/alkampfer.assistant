@@ -14,36 +14,82 @@ namespace Alkampfer.Assistant.Host.Components.Pages
         [Inject] public IRepository<ModelDefinition> Repository { get; set; } = default!;
         [Inject] public ISnackbar Snackbar { get; set; } = default!;
 
-        public List<ModelDefinitionDto> ModelDefinitions { get; set; } = new();
-        public ModelDefinitionDto NewModelDefinition { get; set; } = new();
-        public ModelConfigurationDto NewModelConfig { get; set; } = new();
+        public List<ModelDefinition> ModelDefinitions { get; set; } = new();
+        public ModelDefinition NewModelDefinition { get; set; } = new() { Url = "", ApiKey = "" };
+        public ModelConfiguration NewModelConfig { get; set; } = new() { ModelName = "", ModelDescription = "" };
         public string? EditingModelId { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            // TODO: Load all ModelDefinitions from repository (implement a method for all)
-            // For now, just clear
-            ModelDefinitions.Clear();
+            await LoadModelDefinitionsAsync();
+        }
+
+        private async Task LoadModelDefinitionsAsync()
+        {
+            try
+            {
+                var modelDefinitions = await Repository.GetAllAsync();
+                ModelDefinitions = modelDefinitions.ToList();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error loading model definitions: {ex.Message}", Severity.Error);
+                ModelDefinitions.Clear();
+            }
         }
 
         public void StartAddModelConfig(string modelDefId)
         {
             EditingModelId = modelDefId;
-            NewModelConfig = new ModelConfigurationDto();
+            NewModelConfig = new ModelConfiguration { ModelName = "", ModelDescription = "" };
         }
 
-        public void AddModelConfig()
+        public async Task AddModelConfigAsync()
         {
             var modelDef = ModelDefinitions.Find(m => m.Id == EditingModelId);
             if (modelDef != null && !string.IsNullOrWhiteSpace(NewModelConfig.ModelName))
             {
                 modelDef.Models.Add(NewModelConfig);
-                Snackbar.Add($"Model '{NewModelConfig.ModelName}' added.", Severity.Success);
-                NewModelConfig = new ModelConfigurationDto();
+                try
+                {
+                    await Repository.SaveAsync(modelDef);
+                    Snackbar.Add($"Model '{NewModelConfig.ModelName}' added.", Severity.Success);
+                    NewModelConfig = new ModelConfiguration { ModelName = "", ModelDescription = "" };
+                    EditingModelId = null;
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Error saving model configuration: {ex.Message}", Severity.Error);
+                }
             }
             else
             {
                 Snackbar.Add("Model name is required.", Severity.Error);
+            }
+        }
+
+        public void CancelAddModelConfig()
+        {
+            EditingModelId = null;
+            NewModelConfig = new ModelConfiguration { ModelName = "", ModelDescription = "" };
+        }
+
+        public async Task RemoveModelConfigAsync(string modelDefId, int modelIndex)
+        {
+            var modelDef = ModelDefinitions.Find(m => m.Id == modelDefId);
+            if (modelDef != null && modelIndex >= 0 && modelIndex < modelDef.Models.Count)
+            {
+                var modelName = modelDef.Models[modelIndex].ModelName;
+                modelDef.Models.RemoveAt(modelIndex);
+                try
+                {
+                    await Repository.SaveAsync(modelDef);
+                    Snackbar.Add($"Model '{modelName}' removed.", Severity.Success);
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Error removing model configuration: {ex.Message}", Severity.Error);
+                }
             }
         }
 
@@ -54,23 +100,19 @@ namespace Alkampfer.Assistant.Host.Components.Pages
                 Snackbar.Add("URL and API Key are required.", Severity.Error);
                 return;
             }
+            
             NewModelDefinition.Id = Guid.NewGuid().ToString();
-            ModelDefinitions.Add(NewModelDefinition);
-            // Save to repository
-            var entity = new ModelDefinition
+            try
             {
-                Id = NewModelDefinition.Id,
-                Url = NewModelDefinition.Url!,
-                ApiKey = NewModelDefinition.ApiKey!,
-                Models = NewModelDefinition.Models.ConvertAll(m => new ModelConfiguration
-                {
-                    ModelName = m.ModelName!,
-                    ModelDescription = m.ModelDescription!
-                })
-            };
-            await Repository.SaveAsync(entity);
-            Snackbar.Add("Model definition added.", Severity.Success);
-            NewModelDefinition = new ModelDefinitionDto();
+                await Repository.SaveAsync(NewModelDefinition);
+                ModelDefinitions.Add(NewModelDefinition);
+                Snackbar.Add("Model definition added.", Severity.Success);
+                NewModelDefinition = new ModelDefinition { Url = "", ApiKey = "" };
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error saving model definition: {ex.Message}", Severity.Error);
+            }
         }
 
         public async Task RemoveModelDefinitionAsync(string id)
@@ -78,9 +120,16 @@ namespace Alkampfer.Assistant.Host.Components.Pages
             var modelDef = ModelDefinitions.Find(m => m.Id == id);
             if (modelDef != null)
             {
-                ModelDefinitions.Remove(modelDef);
-                // TODO: Remove from repository (implement a delete method)
-                Snackbar.Add("Model definition removed.", Severity.Success);
+                try
+                {
+                    await Repository.DeleteAsync(id);
+                    ModelDefinitions.Remove(modelDef);
+                    Snackbar.Add("Model definition removed.", Severity.Success);
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Error removing model definition: {ex.Message}", Severity.Error);
+                }
             }
         }
     }

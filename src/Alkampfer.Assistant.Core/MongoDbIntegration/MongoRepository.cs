@@ -28,4 +28,15 @@ public class MongoRepository<T> : IRepository<T> where T : BaseEntity
         var filter = Builders<T>.Filter.Eq(x => x.Id, id);
         return await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _collection.Find(_ => true).ToListAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<T>.Filter.Eq(x => x.Id, id);
+        await _collection.DeleteOneAsync(filter, cancellationToken);
+    }
 }

@@ -1,6 +1,7 @@
 @page "/configuration"
 
 @using MudBlazor
+@using Alkampfer.Assistant.Core.Configuration
 @inherits ConfigurationPage
 
 <PageTitle>Configuration</PageTitle>
@@ -15,19 +16,24 @@
 
     <MudDivider Class="my-4" />
     <MudText Typo="Typo.h6">Model Definitions</MudText>
-    <MudList Class="mt-4" T="ModelDefinitionDto">
+    <MudList Class="mt-4" T="ModelDefinition">
         @foreach (var modelDef in ModelDefinitions)
         {
-            <MudListItem T="ModelDefinitionDto">
+            <MudListItem T="ModelDefinition">
                 <MudText>Url: @modelDef.Url</MudText>
                 <MudText>ApiKey: @modelDef.ApiKey</MudText>
                 <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => StartAddModelConfig(modelDef.Id!))">Add Model</MudButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveModelDefinitionAsync(modelDef.Id!))" />
-                <MudList Class="ml-4 mt-2" T="ModelConfigurationDto">
-                    @foreach (var model in modelDef.Models)
+                <MudList Class="ml-4 mt-2" T="ModelConfiguration">
+                    @for (int i = 0; i < modelDef.Models.Count; i++)
                     {
-                        <MudListItem T="ModelConfigurationDto">
-                            <MudText>Model: @model.ModelName - @model.ModelDescription</MudText>
+                        var model = modelDef.Models[i];
+                        var modelIndex = i; // Capture for closure
+                        <MudListItem T="ModelConfiguration">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <MudText>Model: @model.ModelName - @model.ModelDescription</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveModelConfigAsync(modelDef.Id!, modelIndex))" />
+                            </div>
                         </MudListItem>
                     }
                 </MudList>
@@ -35,7 +41,10 @@
                 {
                     <MudTextField @bind-Value="NewModelConfig.ModelName" Label="Model Name" Variant="Variant.Outlined" Class="my-2" />
                     <MudTextField @bind-Value="NewModelConfig.ModelDescription" Label="Description" Variant="Variant.Outlined" Class="my-2" />
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddModelConfig">Add</MudButton>
+                    <div>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddModelConfigAsync">Add</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelAddModelConfig" Class="ml-2">Cancel</MudButton>
+                    </div>
                 }
             </MudListItem>
         }

@@ -37,4 +37,24 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
             return collection.FindById(id);
         }, cancellationToken);
     }
+
+    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(_connectionString);
+            var collection = db.GetCollection<T>(_collectionName);
+            return collection.FindAll().ToList();
+        }, cancellationToken);
+    }
+
+    public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    {
+        await Task.Run(() =>
+        {
+            using var db = new LiteDatabase(_connectionString);
+            var collection = db.GetCollection<T>(_collectionName);
+            collection.Delete(id);
+        }, cancellationToken);
+    }
 }
