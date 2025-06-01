@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alkampfer.Assistant.Host", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alkampfer.Assistant.Core", "Alkampfer.Assistant.Core\Alkampfer.Assistant.Core.csproj", "{8560FB2D-00A5-45E7-98CC-BFCA571961F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alkampfer.Assistant.Tests", "Alkampfer.Assistant.Tests\Alkampfer.Assistant.Tests.csproj", "{869097E1-C163-4BEA-82E6-C402F5BC9A2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{8560FB2D-00A5-45E7-98CC-BFCA571961F9}.Release|x64.Build.0 = Release|Any CPU
 		{8560FB2D-00A5-45E7-98CC-BFCA571961F9}.Release|x86.ActiveCfg = Release|Any CPU
 		{8560FB2D-00A5-45E7-98CC-BFCA571961F9}.Release|x86.Build.0 = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|x64.Build.0 = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Debug|x86.Build.0 = Debug|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|x64.ActiveCfg = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|x64.Build.0 = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|x86.ActiveCfg = Release|Any CPU
+		{869097E1-C163-4BEA-82E6-C402F5BC9A2A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
