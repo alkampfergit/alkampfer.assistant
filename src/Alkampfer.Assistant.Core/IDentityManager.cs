@@ -2,19 +2,62 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Fasterflect;
 
 namespace Alkampfer.Assistant.Core;
 
-public class IdentityManager
+
+public interface IIdentityManager
 {
+    /// <summary>
+    /// Registers an identity type with the manager.
+    /// </summary>
+    /// <typeparam name="TIdentity">The identity type to register.</typeparam>
+    void RegisterIdentityType<TIdentity>() where TIdentity : Identity;
+
+    /// <summary>
+    /// Parses a string representation of an identity into the appropriate identity type.
+    /// </summary>
+    /// <param name="value">The string representation of the identity.</param>
+    /// <returns>The parsed identity instance.</returns>
+    Identity Parse(string value);
+
+    /// <summary>
+    /// Generates a new identity of the specified type using the counter manager.
+    /// </summary>
+    /// <typeparam name="TIdentity">The type of identity to generate.</typeparam>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A new identity with the next counter value.</returns>
+    Task<TIdentity> GenerateNewAsync<TIdentity>(CancellationToken cancellationToken = default) 
+        where TIdentity : Identity;
+
+    /// <summary>
+    /// Generates a new identity with the specified prefix using the counter manager.
+    /// </summary>
+    /// <param name="prefix">The prefix of the identity type to generate.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A new identity with the next counter value.</returns>
+    Task<Identity> GenerateNewAsync(string prefix, CancellationToken cancellationToken = default);
+}
+
+
+public class IdentityManager : IIdentityManager
+{
+    private readonly ICounterManager _counterManager;
     private readonly ConcurrentDictionary<string, Type> _prefixToType = new();
     private readonly ConcurrentDictionary<Type, string> _typeToPrefix = new();
+
+    public IdentityManager(ICounterManager counterManager)
+    {
+        _counterManager = counterManager ?? throw new ArgumentNullException(nameof(counterManager));
+    }
 
     public void RegisterIdentityType<TIdentity>() where TIdentity : Identity
     {
         var type = typeof(TIdentity);
-        
+
         // Ensure the type has a constructor with a single long parameter
         var ctor = type.Constructor(typeof(long));
         if (ctor == null)
@@ -56,5 +99,29 @@ public class IdentityManager
         {
             throw ex.InnerException;
         }
+    }
+
+    public async Task<TIdentity> GenerateNewAsync<TIdentity>(CancellationToken cancellationToken = default)
+        where TIdentity : Identity
+    {
+        var type = typeof(TIdentity);
+
+        if (!_typeToPrefix.TryGetValue(type, out var prefix))
+            throw new InvalidOperationException($"Identity type '{type.Name}' is not registered");
+
+        var newId = await _counterManager.GenerateNewCounterAsync(prefix, cancellationToken);
+        return (TIdentity)type.CreateInstance(newId);
+    }
+
+    public async Task<Identity> GenerateNewAsync(string prefix, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(prefix))
+            throw new ArgumentException("Prefix cannot be null or empty", nameof(prefix));
+
+        if (!_prefixToType.TryGetValue(prefix, out var type))
+            throw new InvalidOperationException($"Unknown identity prefix: '{prefix}'");
+
+        var newId = await _counterManager.GenerateNewCounterAsync(prefix, cancellationToken);
+        return (Identity)type.CreateInstance(newId);
     }
 }
