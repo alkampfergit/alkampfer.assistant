@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <!-- No additional properties needed - inherited from Directory.Build.props -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,9 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fasterflect" Version="3.0.0" />
-    <PackageReference Include="LiteDB" Version="5.0.21" />
-    <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
+    <PackageReference Include="Fasterflect" />
+    <PackageReference Include="LiteDB" />
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="SemanticKernel.Orchestration" />
   </ItemGroup>
 
 </Project>
