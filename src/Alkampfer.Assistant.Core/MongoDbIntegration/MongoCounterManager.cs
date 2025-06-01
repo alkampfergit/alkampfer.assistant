@@ -19,7 +19,7 @@ public class MongoCounterManager : ICounterManager
         var update = Builders<CounterDocument>.Update.Inc(x => x.Value, 1);
         var options = new FindOneAndUpdateOptions<CounterDocument>
         {
-            IsUpsert = true,
+            IsUpsert = false, // Now we assume the record exists
             ReturnDocument = ReturnDocument.After
         };
 
@@ -30,7 +30,21 @@ public class MongoCounterManager : ICounterManager
             cancellationToken
         );
 
+        if (result == null)
+            throw new InvalidOperationException($"Counter '{counterName}' is not initialized. Call InitSeedAsync first.");
+
         return result.Value;
+    }
+
+    public async Task InitSeedAsync(string counterName, long seed = 0, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<CounterDocument>.Filter.Eq(x => x.Name, counterName);
+        var existing = await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        if (existing == null)
+        {
+            var doc = new CounterDocument { Name = counterName, Value = seed };
+            await _collection.InsertOneAsync(doc, null, cancellationToken);
+        }
     }
 
     private class CounterDocument

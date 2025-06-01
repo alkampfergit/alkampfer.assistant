@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Alkampfer.Assistant.Core\Alkampfer.Assistant.Core.csproj" />
+  </ItemGroup>
+
 </Project>
