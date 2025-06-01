@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Alkampfer.Assistant.Core.MongoDbIntegration;
 
-public class MongoRepository<T> : IMongoRepository<T> where T : MongoBaseClass
+public class MongoRepository<T> : IRepository<T> where T : BaseEntity
 {
     private readonly IMongoCollection<T> _collection;
 

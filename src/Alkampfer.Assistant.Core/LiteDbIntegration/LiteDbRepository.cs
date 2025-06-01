@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Alkampfer.Assistant.Core.LiteDbIntegration;
 
-public class LiteDbRepository<T> : ILiteDbRepository<T> where T : LiteDbBaseClass
+public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
 {
     private readonly string _connectionString;
     private readonly string _collectionName;

@@ -1,4 +1,4 @@
-using Alkampfer.Assistant.Core.MongoDbIntegration;
+using Alkampfer.Assistant.Core;
 
 namespace Alkampfer.Assistant.Core.Configuration;
 
@@ -8,7 +8,7 @@ public class ModelConfiguration
     public string ModelDescription { get; set; }
 }
 
-public class ModelDefinition : MongoBaseClass
+public class ModelDefinition : BaseEntity
 {
     public string Url { get; set; }
     public string ApiKey { get; set; } // Secret
