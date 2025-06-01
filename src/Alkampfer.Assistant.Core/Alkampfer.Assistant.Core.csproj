@@ -13,6 +13,7 @@
     <PackageReference Include="LiteDB" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="SemanticKernel.Orchestration" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
   </ItemGroup>
 
 </Project>
