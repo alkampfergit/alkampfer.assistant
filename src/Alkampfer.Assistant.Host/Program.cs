@@ -1,7 +1,20 @@
+using Alkampfer.Assistant.Host;
+using Serilog;
 using Alkampfer.Assistant.Host.Components;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging with serilog
+ConfigurationHelper.ConfigureLogging();
+
+// Add Serilog to standard logging
+builder.Services.AddLogging(loggingBuilder =>
+{
+    //clear existing providers and add only serilog.
+    loggingBuilder.ClearProviders();
+    loggingBuilder.AddSerilog(dispose: true);
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
