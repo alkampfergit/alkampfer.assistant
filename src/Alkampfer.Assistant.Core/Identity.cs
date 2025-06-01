@@ -17,8 +17,14 @@ public abstract class Identity : IEquatable<Identity>
             throw new ArgumentException($"Invalid identity format. Expected 'prefix/numericId', got '{value}'", nameof(value));
 
         var prefix = parts[0];
+        if (string.IsNullOrWhiteSpace(prefix))
+            throw new ArgumentException($"Prefix cannot be null or empty in identity '{value}'", nameof(value));
+
         if (!long.TryParse(parts[1], out var numericId))
             throw new ArgumentException($"Invalid numeric id in identity '{value}'", nameof(value));
+
+        if (numericId < 0)
+            throw new ArgumentException($"Numeric id must be non-negative in identity '{value}'", nameof(value));
 
         NumericId = numericId;
     }
