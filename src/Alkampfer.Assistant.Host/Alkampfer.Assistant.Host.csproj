@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
-    <!-- No additional properties needed - inherited from Directory.Build.props -->
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MudBlazor" />
-    <PackageReference Include="Serilog.AspNetCore" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../Alkampfer.Assistant.Core/Alkampfer.Assistant.Core.csproj" />
   </ItemGroup>
 
 </Project>

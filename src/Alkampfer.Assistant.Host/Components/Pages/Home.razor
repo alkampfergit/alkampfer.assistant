@@ -1,12 +1,7 @@
 ﻿@page "/"
-@rendermode InteractiveServer
-@using MudBlazor
 
-@inherits HomePage
+<PageTitle>Home</PageTitle>
 
-<h1>Home</h1>
-<MudTextField T="string" Label="Test" Variant="Variant.Outlined" Class="my-2" />
-<MudTextField T="string" Label="Test" Variant="Variant.Outlined" Class="my-2" @bind-Value="TestValue" />
-    
-<p>Test = @Test</p>
-<button class="btn btn-primary" @onclick="ShowTestSnackbar">Click me</button>
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
