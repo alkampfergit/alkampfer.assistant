@@ -6,5 +6,5 @@ namespace Alkampfer.Assistant.Host.Components;
 
 public class BasePage : ComponentBase
 {
-    [Inject] public ISnackbar Snackbar { get; set; } = default!;
+    [Inject] public ISnackbar Snackbar { get; set; } = null!;
 }

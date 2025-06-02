@@ -27,7 +27,7 @@ builder.Services.AddRazorComponents()
 // Add MudBlazor services
 builder.Services.AddMudServices(config =>
 { 
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    //config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
 });
 
 // Register LiteDbRepository for IRepository<ModelDefinition>

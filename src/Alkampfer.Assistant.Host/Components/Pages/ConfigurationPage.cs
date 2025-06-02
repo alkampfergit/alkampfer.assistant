@@ -23,16 +23,18 @@ namespace Alkampfer.Assistant.Host.Components.Pages
             await LoadModelDefinitionsAsync();
         }
 
-        private async Task LoadModelDefinitionsAsync()
+        private Task LoadModelDefinitionsAsync()
         {
             try
             {
                 ModelDefinitions = Repository.AsQueryable.ToList();
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 Snackbar.Add($"Error loading model definitions: {ex.Message}", Severity.Error);
                 ModelDefinitions.Clear();
+                return Task.CompletedTask;
             }
         }
 
