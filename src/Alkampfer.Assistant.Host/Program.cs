@@ -1,8 +1,12 @@
 using Alkampfer.Assistant.Host.Components;
 using MudBlazor;
 using MudBlazor.Services;
+using Alkampfer.Assistant.Host; // Add this for ConfigurationHelper
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add override configuration from alkampfer.assistant.json if present
+ConfigurationHelper.AddOverrideConfiguration(builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
