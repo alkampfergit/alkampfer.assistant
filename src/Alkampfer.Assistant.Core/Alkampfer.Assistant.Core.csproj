@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- No additional properties needed - inherited from Directory.Build.props -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fasterflect" />
+    <PackageReference Include="LiteDB" />
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="SemanticKernel.Orchestration" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+  </ItemGroup>
+
+</Project>

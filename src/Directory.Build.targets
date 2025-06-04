@@ -1,0 +1,14 @@
+<Project>
+
+  <!-- Common targets that apply to all projects -->
+  
+  <!-- Example: Common build outputs configuration -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Example: Common MSBuild targets can be added here -->
+  
+</Project>
