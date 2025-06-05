@@ -389,9 +389,88 @@ public abstract class RepositoryTestsBase
         Assert.Equal("Updated", afterUpdate.Name);
         Assert.Equal(200, afterUpdate.Value);
     }
+
+    [Fact]
+    public async Task LoadAllAsync_WithNoEntities_ShouldReturnEmptyCollection()
+    {
+        // Arrange
+        var repository = CreateRepository();
+
+        // Act
+        var entities = await repository.LoadAllAsync();
+
+        // Assert
+        Assert.NotNull(entities);
+        Assert.Empty(entities);
+    }
+
+    [Fact]
+    public async Task LoadAllAsync_WithMultipleEntities_ShouldReturnAllEntities()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "all-1", Name = "First Entity", Value = 10 };
+        var entity2 = new TestEntity { Id = "all-2", Name = "Second Entity", Value = 20 };
+        var entity3 = new TestEntity { Id = "all-3", Name = "Third Entity", Value = 30 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+        await repository.SaveAsync(entity3);
+
+        // Act
+        var entities = await repository.LoadAllAsync();
+
+        // Assert
+        Assert.NotNull(entities);
+        var entitiesList = entities.ToList();
+        Assert.Equal(3, entitiesList.Count);
+        
+        Assert.Contains(entitiesList, e => e.Id == "all-1" && e.Name == "First Entity" && e.Value == 10);
+        Assert.Contains(entitiesList, e => e.Id == "all-2" && e.Name == "Second Entity" && e.Value == 20);
+        Assert.Contains(entitiesList, e => e.Id == "all-3" && e.Name == "Third Entity" && e.Value == 30);
+    }
+
+    [Fact]
+    public async Task LoadAllAsync_AfterDeletion_ShouldReturnRemainingEntities()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var entity1 = new TestEntity { Id = "delete-all-1", Name = "Keep This", Value = 100 };
+        var entity2 = new TestEntity { Id = "delete-all-2", Name = "Delete This", Value = 200 };
+        var entity3 = new TestEntity { Id = "delete-all-3", Name = "Keep This Too", Value = 300 };
+
+        await repository.SaveAsync(entity1);
+        await repository.SaveAsync(entity2);
+        await repository.SaveAsync(entity3);
+
+        // Act
+        await repository.DeleteAsync("delete-all-2");
+        var entities = await repository.LoadAllAsync();
+
+        // Assert
+        Assert.NotNull(entities);
+        var entitiesList = entities.ToList();
+        Assert.Equal(2, entitiesList.Count);
+        
+        Assert.Contains(entitiesList, e => e.Id == "delete-all-1");
+        Assert.Contains(entitiesList, e => e.Id == "delete-all-3");
+        Assert.DoesNotContain(entitiesList, e => e.Id == "delete-all-2");
+    }
+
+    [Fact]
+    public async Task LoadAllAsync_WithCancellationToken_ShouldRespectCancellation()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => repository.LoadAllAsync(cts.Token));
+    }
 }
 
-// Test entity class for repository testing
 public class TestEntity : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
