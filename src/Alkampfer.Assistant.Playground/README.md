@@ -1,6 +1,53 @@
 # Alkampfer.Assistant.Playground
 
-A console application for testing and experimenting with Alkampfer.Assistant components.
+This is a playground project for testing and experimenting with the Alkampfer.Assistant components.
+
+## Structure
+
+The playground uses a menu-driven system powered by SpectreConsole to organize and run examples.
+
+### Creating New Examples
+
+1. Create a new class that inherits from `ExampleBase`
+2. Implement the required properties and `ExecuteAsync` method:
+
+```csharp
+using Spectre.Console;
+
+namespace Alkampfer.Assistant.Playground.Examples.YourCategory;
+
+public class YourExample : ExampleBase
+{
+    public override string Name => "Your Example Name";
+    
+    // Optional: Set to null or omit for root-level examples
+    public override string Category => "Your Category";
+    
+    public override string Description => "What your example does";
+    
+    public override async Task ExecuteAsync(CancellationToken cancellationToken = default)
+    {
+        AnsiConsole.MarkupLine("[green]Your example code here[/]");
+        await Task.CompletedTask;
+    }
+}
+```
+
+3. Examples are automatically discovered via reflection - no registration needed!
+
+### Menu Navigation
+
+- **Root Level**: Examples without a category appear at the top of the main menu
+- **Categories**: Examples with the same category are grouped together in sub-menus
+- **Navigation**: Use arrow keys to select, Enter to run, and follow the back buttons to return
+
+### Running
+
+```bash
+dotnet run --project src/Alkampfer.Assistant.Playground
+```
+
+The application automatically loads environment variables from `.env` files using `DotEnv.Load()`.
 
 ## Purpose
 

@@ -3,6 +3,8 @@
     <!-- Core dependencies -->
     <PackageVersion Include="Fasterflect" Version="3.0.0" />
     <PackageVersion Include="LiteDB" Version="5.0.21" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="1.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.4.0" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
     <PackageVersion Include="OpenAI" Version="2.5.0" />
