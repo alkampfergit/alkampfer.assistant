@@ -11,6 +11,11 @@ public interface IConversation
     Statistics Statistics { get; }
 
     /// <summary>
+    /// Gets the context dictionary for storing generic information about this conversation.
+    /// </summary>
+    IDictionary<string, object?> Context { get; }
+
+    /// <summary>
     /// Adds a message to the conversation.
     /// </summary>
     /// <param name="role">The role of the message sender.</param>

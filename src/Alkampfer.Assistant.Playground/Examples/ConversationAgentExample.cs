@@ -1,3 +1,4 @@
+using Alkampfer.Assistant.Console;
 using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.Core.Llm;
 using Spectre.Console;
@@ -17,9 +18,6 @@ public class ConversationAgentExample : ExampleBase
 
     public override async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        AnsiConsole.MarkupLine("[yellow]Conversation Agent Example[/]");
-        AnsiConsole.WriteLine();
-
         // Load environment variables from .env file
         DotEnv.Load();
 
@@ -54,27 +52,31 @@ public class ConversationAgentExample : ExampleBase
             // Create a new conversation
             var conversation = new Conversation();
 
+            // Create the console display with sticky header
+            using var display = new ConversationConsoleDisplay();
+
             // Start the conversation context (using statement ensures it's cleaned up)
             using (ConversationContext.StartConversation(conversation))
             {
-                AnsiConsole.MarkupLine("[green]Conversation started![/]");
-                AnsiConsole.MarkupLine("[dim]Type 'exit' or 'quit' to end the conversation.[/]");
-                AnsiConsole.WriteLine();
+                // Initialize display and show header
+                display.UpdateFromConversation(conversation);
+                display.ClearAndRenderHeader();
+
+                display.WriteLine("[green]Conversation started![/]");
+                display.WriteLine("[dim]Type 'exit' or 'quit' to end the conversation.[/]");
+                display.WriteLine(string.Empty);
 
                 // Optional: Add a system message to set the conversation context
                 await conversation.AddMessageAsync(
-                    Interfaces.MessageRole.System, 
-                    "You are a helpful AI assistant. Be concise and friendly.", 
+                    Interfaces.MessageRole.System,
+                    "You are a helpful AI assistant. Be concise and friendly.",
                     cancellationToken);
 
                 // Main conversation loop
                 while (true)
                 {
                     // Get user input
-                    var userMessage = AnsiConsole.Prompt(
-                        new TextPrompt<string>("[blue]You:[/]")
-                            .PromptStyle("white")
-                            .AllowEmpty());
+                    var userMessage = display.PromptInput("[blue]You:[/]");
 
                     if (string.IsNullOrWhiteSpace(userMessage))
                     {
@@ -82,7 +84,7 @@ public class ConversationAgentExample : ExampleBase
                     }
 
                     // Check for exit commands
-                    if (userMessage.Equals("exit", StringComparison.OrdinalIgnoreCase) || 
+                    if (userMessage.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
                         userMessage.Equals("quit", StringComparison.OrdinalIgnoreCase))
                     {
                         break;
@@ -91,27 +93,27 @@ public class ConversationAgentExample : ExampleBase
                     // Send the message and get a response
                     try
                     {
-                        string response = await AnsiConsole.Status()
-                            .Spinner(Spinner.Known.Dots)
-                            .SpinnerStyle(Style.Parse("green"))
-                            .StartAsync("[dim]Thinking...[/]", async ctx =>
-                            {
-                                return await agent.SendMessageAsync(userMessage, cancellationToken);
-                            });
+                        string response = await display.ShowStatusAsync(
+                            "[dim]Thinking...[/]",
+                            async () => await agent.SendMessageAsync(userMessage, cancellationToken));
+
+                        // Update the display with new statistics and re-render
+                        display.UpdateFromConversation(conversation);
+                        display.ClearAndRenderHeader();
 
                         // Display the assistant's response
-                        AnsiConsole.MarkupLine($"[green]Assistant:[/] {response}");
-                        AnsiConsole.WriteLine();
+                        display.WriteLine($"[green]Assistant:[/] {response}");
+                        display.WriteLine(string.Empty);
                     }
                     catch (Exception ex)
                     {
-                        AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
-                        AnsiConsole.WriteLine();
+                        display.WriteLine($"[red]Error: {ex.Message}[/]");
+                        display.WriteLine(string.Empty);
                     }
                 }
 
-                // Display conversation statistics
-                AnsiConsole.WriteLine();
+                // Display final statistics
+                display.WriteLine(string.Empty);
                 DisplayStatistics(conversation);
             }
 

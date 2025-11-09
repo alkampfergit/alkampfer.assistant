@@ -8,10 +8,14 @@ namespace Alkampfer.Assistant.Core;
 public class Conversation : IConversation
 {
     private readonly List<ConversationMessage> _messages = new();
+    private readonly Dictionary<string, object?> _context = new();
     private readonly object _lock = new();
 
     /// <inheritdoc />
     public Statistics Statistics { get; } = new();
+
+    /// <inheritdoc />
+    public IDictionary<string, object?> Context => _context;
 
     /// <inheritdoc />
     public Task AddMessageAsync(MessageRole role, string content, CancellationToken cancellationToken = default)

@@ -60,7 +60,7 @@ class Program
 
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
-            Console.ReadKey(true);
+            System.Console.ReadKey(true);
             AnsiConsole.Clear();
         }
 
