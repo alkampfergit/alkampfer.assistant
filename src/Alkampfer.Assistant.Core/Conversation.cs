@@ -11,6 +11,9 @@ public class Conversation : IConversation
     private readonly object _lock = new();
 
     /// <inheritdoc />
+    public Statistics Statistics { get; } = new();
+
+    /// <inheritdoc />
     public Task AddMessageAsync(MessageRole role, string content, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);

@@ -6,6 +6,11 @@ namespace Alkampfer.Assistant.Interfaces;
 public interface IConversation
 {
     /// <summary>
+    /// Gets the statistics for this conversation.
+    /// </summary>
+    Statistics Statistics { get; }
+
+    /// <summary>
     /// Adds a message to the conversation.
     /// </summary>
     /// <param name="role">The role of the message sender.</param>
@@ -20,3 +25,8 @@ public interface IConversation
     /// <returns>A collection of conversation messages.</returns>
     Task<IReadOnlyList<ConversationMessage>> GetMessagesAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Represents a message in a conversation.
+/// </summary>
+public record ConversationMessage(MessageRole Role, string Content);
