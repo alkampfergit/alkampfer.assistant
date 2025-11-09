@@ -1,6 +1,6 @@
 using System;
 
-namespace Alkampfer.Assistant.Core;
+namespace Alkampfer.Assistant.Interfaces;
 
 public interface ICounterManager
 {

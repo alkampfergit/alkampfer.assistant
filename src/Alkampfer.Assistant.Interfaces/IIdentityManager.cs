@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Alkampfer.Assistant.Core;
+namespace Alkampfer.Assistant.Interfaces;
 
 public interface IIdentityManager
 {
@@ -24,7 +24,7 @@ public interface IIdentityManager
     /// <typeparam name="TIdentity">The type of identity to generate.</typeparam>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A new identity with the next counter value.</returns>
-    Task<TIdentity> GenerateNewAsync<TIdentity>(CancellationToken cancellationToken = default) 
+    Task<TIdentity> GenerateNewAsync<TIdentity>(CancellationToken cancellationToken = default)
         where TIdentity : Identity;
 
     /// <summary>

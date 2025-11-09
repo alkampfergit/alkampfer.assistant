@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Alkampfer.Assistant.Core;
+namespace Alkampfer.Assistant.Interfaces;
 
 /// <summary>
 /// Generic repository interface for data access operations on entities derived from BaseEntity.

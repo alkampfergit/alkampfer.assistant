@@ -1,4 +1,4 @@
-namespace Alkampfer.Assistant.Core;
+namespace Alkampfer.Assistant.Interfaces;
 
 public abstract class BaseEntity
 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Interfaces;
 
 namespace Alkampfer.Assistant.Tests.Core;
 

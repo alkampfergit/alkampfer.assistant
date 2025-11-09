@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using Alkampfer.Assistant.Interfaces;
 
 namespace Alkampfer.Assistant.Core.MongoDbIntegration;
 

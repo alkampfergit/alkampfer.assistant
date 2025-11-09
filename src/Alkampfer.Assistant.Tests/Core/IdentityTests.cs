@@ -1,5 +1,5 @@
 using System;
-using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Interfaces;
 using Xunit;
 
 namespace Alkampfer.Assistant.Tests.Core;

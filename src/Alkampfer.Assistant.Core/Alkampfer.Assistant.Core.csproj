@@ -16,4 +16,8 @@
     <PackageReference Include="Serilog.Extensions.Logging" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Alkampfer.Assistant.Interfaces\Alkampfer.Assistant.Interfaces.csproj" />
+  </ItemGroup>
+
 </Project>

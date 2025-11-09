@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Interfaces;
 using Xunit;
 
 namespace Alkampfer.Assistant.Tests.Core.DatabaseRelated;

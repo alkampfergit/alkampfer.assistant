@@ -1,4 +1,4 @@
-using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Interfaces;
 
 namespace Alkampfer.Assistant.Core.Configuration;
 
