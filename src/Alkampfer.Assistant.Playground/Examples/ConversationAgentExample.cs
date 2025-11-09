@@ -2,7 +2,7 @@ using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.Core.Llm;
 using Spectre.Console;
 
-namespace Alkampfer.Assistant.Playground.Examples.Advanced;
+namespace Alkampfer.Assistant.Playground.Examples;
 
 /// <summary>
 /// Example demonstrating the ConversationAgent with Azure OpenAI.
@@ -13,8 +13,6 @@ public class ConversationAgentExample : ExampleBase
 {
     public override string Name => "Conversation Agent with Azure OpenAI";
 
-    public override string Category => "Advanced Examples";
-
     public override string Description => "Demonstrates using ConversationAgent with Azure OpenAI for multi-turn conversations";
 
     public override async Task ExecuteAsync(CancellationToken cancellationToken = default)
@@ -22,20 +20,23 @@ public class ConversationAgentExample : ExampleBase
         AnsiConsole.MarkupLine("[yellow]Conversation Agent Example[/]");
         AnsiConsole.WriteLine();
 
-        // Check for required environment variables
-        var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
-        var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
-        var deploymentId = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_ID");
+        // Load environment variables from .env file
+        DotEnv.Load();
 
-        if (string.IsNullOrWhiteSpace(azureEndpoint) || 
-            string.IsNullOrWhiteSpace(apiKey) || 
-            string.IsNullOrWhiteSpace(deploymentId))
+        // Check for required environment variables (same as tests use)
+        var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_ENDPOINT");
+        var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        var model = Environment.GetEnvironmentVariable("AZURE_MODEL");
+
+        if (string.IsNullOrWhiteSpace(azureEndpoint) ||
+            string.IsNullOrWhiteSpace(apiKey) ||
+            string.IsNullOrWhiteSpace(model))
         {
             AnsiConsole.MarkupLine("[red]Error: Azure OpenAI configuration not found![/]");
             AnsiConsole.MarkupLine("[dim]Please set the following environment variables:[/]");
-            AnsiConsole.MarkupLine("[dim]  - AZURE_OPENAI_ENDPOINT[/]");
-            AnsiConsole.MarkupLine("[dim]  - AZURE_OPENAI_API_KEY[/]");
-            AnsiConsole.MarkupLine("[dim]  - AZURE_OPENAI_DEPLOYMENT_ID[/]");
+            AnsiConsole.MarkupLine("[dim]  - AZURE_ENDPOINT[/]");
+            AnsiConsole.MarkupLine("[dim]  - OPENAI_API_KEY[/]");
+            AnsiConsole.MarkupLine("[dim]  - AZURE_MODEL[/]");
             return;
         }
 
@@ -45,7 +46,7 @@ public class ConversationAgentExample : ExampleBase
             var languageModel = new AzureOpenAiChatLanguageModel(
                 azureEndpoint,
                 apiKey,
-                deploymentId);
+                model);
 
             // Create the conversation agent
             var agent = new ConversationAgent(languageModel);
