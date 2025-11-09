@@ -56,7 +56,7 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
     }
 
     /// <inheritdoc/>
-    public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task<LanguageModelResponse> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
@@ -97,7 +97,11 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
             }
         }
 
-        return responseText.ToString();
+        // Extract token usage from the response
+        var usage = response.Usage;
+        var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
+
+        return new LanguageModelResponse(responseText.ToString(), statistics, response);
     }
 }
 

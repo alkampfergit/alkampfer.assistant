@@ -49,6 +49,19 @@ dotnet run --project src/Alkampfer.Assistant.Playground
 
 The application automatically loads environment variables from `.env` files using `DotEnv.Load()`.
 
+### Environment Variables
+
+Some examples require environment variables for configuration. Create a `.env` file in the Playground directory based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+For Azure OpenAI examples, you'll need:
+- `AZURE_OPENAI_ENDPOINT`: Your Azure OpenAI endpoint URL
+- `AZURE_OPENAI_API_KEY`: Your Azure OpenAI API key
+- `AZURE_OPENAI_DEPLOYMENT_ID`: Your deployment/model name
+
 ## Purpose
 
 This project provides a sandbox environment for:

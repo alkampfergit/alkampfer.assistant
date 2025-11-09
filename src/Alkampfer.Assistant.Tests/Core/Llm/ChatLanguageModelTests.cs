@@ -57,8 +57,12 @@ public class ChatLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
-        Assert.Contains("4", response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
+        Assert.Contains("4", response.Response);
+        Assert.NotNull(response.Statistics);
+        Assert.True(response.Statistics.InputTokens > 0);
+        Assert.True(response.Statistics.OutputTokens > 0);
     }
 
     [Fact]
@@ -79,9 +83,10 @@ public class ChatLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
+        Assert.NotNull(response.Response);
         // Since the model should be stateless, verify it does not repeat the explicit prior statement.
         // Allow mentions of color names in general, but not a verbatim recall of the previous user sentence.
-        Assert.DoesNotContain("My favorite color is blue", response, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("My favorite color is blue", response.Response, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -160,9 +165,10 @@ public class ChatLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
         // Check for common primary colors
-        var lowerResponse = response.ToLowerInvariant();
+        var lowerResponse = response.Response.ToLowerInvariant();
         var hasRed = lowerResponse.IndexOf("red", StringComparison.OrdinalIgnoreCase) >= 0;
         var hasBlue = lowerResponse.IndexOf("blue", StringComparison.OrdinalIgnoreCase) >= 0;
         var hasYellow = lowerResponse.IndexOf("yellow", StringComparison.OrdinalIgnoreCase) >= 0;

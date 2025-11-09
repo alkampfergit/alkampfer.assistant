@@ -60,8 +60,12 @@ public class ResponseLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
-        Assert.Contains("4", response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
+        Assert.Contains("4", response.Response);
+        Assert.NotNull(response.Statistics);
+        Assert.True(response.Statistics.InputTokens > 0);
+        Assert.True(response.Statistics.OutputTokens > 0);
     }
 
     [Fact]
@@ -82,8 +86,9 @@ public class ResponseLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
+        Assert.NotNull(response.Response);
         // Since it's stateless, the model should NOT remember the previous conversation
-        Assert.DoesNotContain("green", response, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("green", response.Response, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -162,8 +167,10 @@ public class ResponseLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
-        Assert.Contains("8", response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
+        Assert.Contains("8", response.Response);
+        Assert.NotNull(response.Statistics);
         // Response might include reasoning summary
     }
 
@@ -239,7 +246,8 @@ public class ResponseLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
     }
 
     [Fact]
@@ -258,8 +266,9 @@ public class ResponseLanguageModelTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEmpty(response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
         // Just verify we got a response with content
-        Assert.True(response.Length > 5, "Response should contain meaningful content");
+        Assert.True(response.Response.Length > 5, "Response should contain meaningful content");
     }
 }

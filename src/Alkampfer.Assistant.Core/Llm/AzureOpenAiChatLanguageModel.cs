@@ -1,4 +1,5 @@
 using System.ClientModel;
+using Alkampfer.Assistant.Interfaces;
 using Alkampfer.Assistant.Interfaces.Llm;
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
@@ -38,7 +39,7 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
     }
 
     /// <inheritdoc/>
-    public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task<LanguageModelResponse> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
@@ -54,6 +55,10 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
 
         var assistantMessage = completion.Value.Content[0].Text;
 
-        return assistantMessage;
+        // Extract token usage from the completion
+        var usage = completion.Value.Usage;
+        var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
+
+        return new LanguageModelResponse(assistantMessage, statistics, completion.Value);
     }
 }
