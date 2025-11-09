@@ -52,19 +52,20 @@ public class ConversationAgentExample : ExampleBase
             // Create a new conversation
             var conversation = new Conversation();
 
-            // Create the console display with sticky header
-            using var display = new ConversationConsoleDisplay();
+            // Create the console display with truly sticky header
+            using var display = new ScrollableConversationDisplay();
 
             // Start the conversation context (using statement ensures it's cleaned up)
             using (ConversationContext.StartConversation(conversation))
             {
-                // Initialize display and show header
+                // Initialize display - clears screen and renders sticky header
                 display.UpdateFromConversation(conversation);
-                display.ClearAndRenderHeader();
+                display.Initialize();
 
-                display.WriteLine("[green]Conversation started![/]");
-                display.WriteLine("[dim]Type 'exit' or 'quit' to end the conversation.[/]");
-                display.WriteLine(string.Empty);
+                display.WriteLines(
+                    "[green]Conversation started![/]",
+                    "[dim]Type 'exit' or 'quit' to end the conversation.[/]",
+                    string.Empty);
 
                 // Optional: Add a system message to set the conversation context
                 await conversation.AddMessageAsync(
@@ -93,31 +94,40 @@ public class ConversationAgentExample : ExampleBase
                     // Send the message and get a response
                     try
                     {
+                        // Add user message to display
+                        display.WriteLine($"[blue]You:[/] {userMessage}");
+
                         string response = await display.ShowStatusAsync(
-                            "[dim]Thinking...[/]",
+                            "Thinking...",
                             async () => await agent.SendMessageAsync(userMessage, cancellationToken));
 
-                        // Update the display with new statistics and re-render
+                        // Update the display with new statistics and re-render header
                         display.UpdateFromConversation(conversation);
-                        display.ClearAndRenderHeader();
+                        display.RenderHeader();
 
                         // Display the assistant's response
-                        display.WriteLine($"[green]Assistant:[/] {response}");
-                        display.WriteLine(string.Empty);
+                        display.WriteLines(
+                            $"[green]Assistant:[/] {response}",
+                            string.Empty);
                     }
                     catch (Exception ex)
                     {
-                        display.WriteLine($"[red]Error: {ex.Message}[/]");
-                        display.WriteLine(string.Empty);
+                        display.WriteLines(
+                            $"[red]Error: {ex.Message}[/]",
+                            string.Empty);
                     }
                 }
 
-                // Display final statistics
+                // End the conversation - restore normal console
                 display.WriteLine(string.Empty);
-                DisplayStatistics(conversation);
+                display.WriteLine("[yellow]═══════════════════════════════════════════[/]");
             }
 
+            // Clear and show final statistics in normal mode
+            AnsiConsole.Clear();
             AnsiConsole.MarkupLine("[green]Conversation ended.[/]");
+            AnsiConsole.WriteLine();
+            DisplayStatistics(conversation);
         }
         catch (Exception ex)
         {
