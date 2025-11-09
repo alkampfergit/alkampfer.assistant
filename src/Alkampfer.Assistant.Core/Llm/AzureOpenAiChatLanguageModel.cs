@@ -7,11 +7,11 @@ namespace Alkampfer.Assistant.Core.Llm;
 
 /// <summary>
 /// Azure OpenAI language model implementation using the traditional chat completion API.
+/// This is a stateless implementation - each call is independent with no conversation history.
 /// </summary>
 public class AzureOpenAiChatLanguageModel : ILanguageModel
 {
     private readonly ChatClient _chatClient;
-    private readonly List<ChatMessage> _messages;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureOpenAiChatLanguageModel"/> class.
@@ -26,7 +26,6 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
             new ApiKeyCredential(apiKey));
 
         _chatClient = client.GetChatClient(deploymentId);
-        _messages = new List<ChatMessage>();
     }
 
     /// <summary>
@@ -36,7 +35,6 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
     public AzureOpenAiChatLanguageModel(ChatClient chatClient)
     {
         _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
-        _messages = new List<ChatMessage>();
     }
 
     /// <inheritdoc/>
@@ -47,26 +45,15 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
             throw new ArgumentException("Prompt cannot be null or empty.", nameof(prompt));
         }
 
-        _messages.Add(ChatMessage.CreateUserMessage(prompt));
+        var messages = new List<ChatMessage>
+        {
+            ChatMessage.CreateUserMessage(prompt)
+        };
 
-        var completion = await _chatClient.CompleteChatAsync(_messages, cancellationToken: cancellationToken);
+        var completion = await _chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
 
         var assistantMessage = completion.Value.Content[0].Text;
-        _messages.Add(ChatMessage.CreateAssistantMessage(assistantMessage));
 
         return assistantMessage;
     }
-
-    /// <summary>
-    /// Clears the conversation history.
-    /// </summary>
-    public void ClearHistory()
-    {
-        _messages.Clear();
-    }
-
-    /// <summary>
-    /// Gets the current conversation history.
-    /// </summary>
-    public IReadOnlyList<ChatMessage> History => _messages.AsReadOnly();
 }

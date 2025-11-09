@@ -15,7 +15,7 @@ namespace Alkampfer.Assistant.Tests.Core.Llm;
 /// Integration tests for AzureOpenAiResponseLanguageModel.
 /// Requires AZURE_ENDPOINT, OPENAI_API_KEY, and AZURE_MODEL environment variables.
 /// </summary>
-public class ResponseLanguageModelTests : IDisposable
+public class ResponseLanguageModelTests
 {
     private readonly AzureOpenAiResponseLanguageModel? _sut;
     private readonly bool _canRunTests;
@@ -65,7 +65,7 @@ public class ResponseLanguageModelTests : IDisposable
     }
 
     [Fact]
-    public async Task GenerateResponseAsync_WithMultiplePrompts_ShouldMaintainConversationContext()
+    public async Task GenerateResponseAsync_WithMultiplePrompts_ShouldBeStateless()
     {
         // Arrange
         if (!_canRunTests)
@@ -82,8 +82,8 @@ public class ResponseLanguageModelTests : IDisposable
 
         // Assert
         Assert.NotNull(response);
-        Assert.Contains("green", response, StringComparison.OrdinalIgnoreCase);
-        Assert.NotNull(_sut.ConversationId);
+        // Since it's stateless, the model should NOT remember the previous conversation
+        Assert.DoesNotContain("green", response, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -128,90 +128,6 @@ public class ResponseLanguageModelTests : IDisposable
             _sut!.GenerateResponseAsync("   "));
     }
 
-    [Fact]
-    public async Task ClearHistory_ShouldResetConversationId()
-    {
-        // Arrange
-        if (!_canRunTests)
-        {
-            return;
-        }
-
-        var firstPrompt = "Remember that my name is Bob.";
-        var secondPrompt = "What is my name?";
-
-        // Act
-        await _sut!.GenerateResponseAsync(firstPrompt);
-        var conversationIdBeforeClear = _sut.ConversationId;
-        _sut.ClearHistory();
-        var conversationIdAfterClear = _sut.ConversationId;
-        var response = await _sut.GenerateResponseAsync(secondPrompt);
-
-        // Assert
-        Assert.NotNull(conversationIdBeforeClear);
-        Assert.Null(conversationIdAfterClear);
-        Assert.NotNull(response);
-        // The model should not know the name anymore
-        Assert.DoesNotContain("Bob", response, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task ConversationId_ShouldBeNullInitially()
-    {
-        // Arrange
-        if (!_canRunTests)
-        {
-            return;
-        }
-
-        // Act
-        var conversationId = _sut!.ConversationId;
-
-        // Assert
-        Assert.Null(conversationId);
-    }
-
-    [Fact]
-    public async Task ConversationId_ShouldBeSetAfterFirstResponse()
-    {
-        // Arrange
-        if (!_canRunTests)
-        {
-            return;
-        }
-
-        var prompt = "Hello";
-
-        // Act
-        await _sut!.GenerateResponseAsync(prompt);
-        var conversationId = _sut.ConversationId;
-
-        // Assert
-        Assert.NotNull(conversationId);
-        Assert.NotEmpty(conversationId);
-    }
-
-    [Fact]
-    public async Task ConversationId_ShouldRemainSameAcrossMultiplePrompts()
-    {
-        // Arrange
-        if (!_canRunTests)
-        {
-            return;
-        }
-
-        // Act
-        await _sut!.GenerateResponseAsync("First message");
-        var firstId = _sut.ConversationId;
-        
-        await _sut.GenerateResponseAsync("Second message");
-        var secondId = _sut.ConversationId;
-
-        // Assert
-        Assert.NotNull(firstId);
-        Assert.NotNull(secondId);
-        Assert.Equal(firstId, secondId);
-    }
 
     [Fact]
     public async Task GenerateResponseAsync_WithCancellationToken_ShouldSupportCancellation()
@@ -269,7 +185,6 @@ public class ResponseLanguageModelTests : IDisposable
 
         // Assert
         Assert.NotNull(instance);
-        Assert.Null(instance.ConversationId);
     }
 
     [Fact]
@@ -346,34 +261,5 @@ public class ResponseLanguageModelTests : IDisposable
         Assert.NotEmpty(response);
         // Just verify we got a response with content
         Assert.True(response.Length > 5, "Response should contain meaningful content");
-    }
-
-    [Fact]
-    public async Task GenerateResponseAsync_AfterClearHistory_ShouldStartNewConversation()
-    {
-        // Arrange
-        if (!_canRunTests)
-        {
-            return;
-        }
-
-        // Act
-        await _sut!.GenerateResponseAsync("First conversation");
-        var firstConversationId = _sut.ConversationId;
-        
-        _sut.ClearHistory();
-        
-        await _sut.GenerateResponseAsync("Second conversation");
-        var secondConversationId = _sut.ConversationId;
-
-        // Assert
-        Assert.NotNull(firstConversationId);
-        Assert.NotNull(secondConversationId);
-        Assert.NotEqual(firstConversationId, secondConversationId);
-    }
-
-    public void Dispose()
-    {
-        _sut?.ClearHistory();
     }
 }

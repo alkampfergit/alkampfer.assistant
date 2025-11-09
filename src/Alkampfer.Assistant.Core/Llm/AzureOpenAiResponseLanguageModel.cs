@@ -10,11 +10,11 @@ namespace Alkampfer.Assistant.Core.Llm;
 
 /// <summary>
 /// Azure OpenAI language model implementation using the new Response API with support for reasoning.
+/// This is a stateless implementation - each call is independent with no conversation history.
 /// </summary>
 public class AzureOpenAiResponseLanguageModel : ILanguageModel
 {
     private readonly OpenAIResponseClient _responseClient;
-    private string? _conversationId;
     private readonly ResponseReasoningEffortLevel _reasoningEffortLevel;
 
     /// <summary>
@@ -67,7 +67,6 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
 
         var options = new ResponseCreationOptions
         {
-            PreviousResponseId = _conversationId,
             ReasoningOptions = new ResponseReasoningOptions()
             {
                 ReasoningEffortLevel = _reasoningEffortLevel
@@ -77,7 +76,6 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
         var result = await _responseClient.CreateResponseAsync(inputItems, options, cancellationToken);
 
         OpenAIResponse response = result;
-        _conversationId = response.Id;
 
         var responseText = new StringBuilder();
 
@@ -101,19 +99,6 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
 
         return responseText.ToString();
     }
-
-    /// <summary>
-    /// Clears the conversation history by resetting the conversation ID.
-    /// </summary>
-    public void ClearHistory()
-    {
-        _conversationId = null;
-    }
-
-    /// <summary>
-    /// Gets the current conversation ID.
-    /// </summary>
-    public string? ConversationId => _conversationId;
 }
 
 #pragma warning restore OPENAI001
