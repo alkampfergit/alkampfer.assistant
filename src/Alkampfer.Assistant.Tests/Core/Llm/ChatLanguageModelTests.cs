@@ -99,8 +99,8 @@ public class ChatLanguageModelTests
         }
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
-            _sut!.GenerateResponseAsync(null!));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut!.GenerateResponseAsync((string)null!));
     }
 
     [Fact]
@@ -201,7 +201,119 @@ public class ChatLanguageModelTests
     public void Constructor_WithNullChatClient_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new AzureOpenAiChatLanguageModel(null!));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_ShouldReturnResponse()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "What is 2+2? Reply with only the number.")
+            }
+        };
+
+        // Act
+        var response = await _sut!.GenerateResponseAsync(request);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
+        Assert.Contains("4", response.Response);
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_WithPreviousConversationId_ShouldThrowNotSupportedException()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            PreviousConversationId = "some-id",
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "Hello")
+            }
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotSupportedException>(() =>
+            _sut!.GenerateResponseAsync(request));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_NullRequest_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _sut!.GenerateResponseAsync((LlmRequest)null!));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_EmptyMessages_ShouldThrowArgumentException()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>()
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut!.GenerateResponseAsync(request));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_MultipleMessages_ShouldIncludeConversationHistory()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.System, "You are a helpful assistant."),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "My favorite color is blue."),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.Assistant, "Noted."),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "What is my favorite color?")
+            }
+        };
+
+        // Act
+        var response = await _sut!.GenerateResponseAsync(request);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotNull(response.Response);
+        Assert.Contains("blue", response.Response, StringComparison.OrdinalIgnoreCase);
     }
 }

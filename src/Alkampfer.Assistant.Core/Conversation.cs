@@ -18,7 +18,7 @@ public class Conversation : IConversation
     public IDictionary<string, object?> Context => _context;
 
     /// <inheritdoc />
-    public Task AddMessageAsync(MessageRole role, string content, CancellationToken cancellationToken = default)
+    public Task AddMessageAsync(ConversationRole role, string content, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
 

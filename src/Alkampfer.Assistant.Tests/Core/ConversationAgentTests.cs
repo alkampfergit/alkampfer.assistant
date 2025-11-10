@@ -98,7 +98,7 @@ public class ConversationAgentTests
 
             // Assert
             var messages = await conversation.GetMessagesAsync();
-            Assert.Contains(messages, m => m.Role == MessageRole.User && m.Content == userMessage);
+            Assert.Contains(messages, m => m.Role == ConversationRole.User && m.Content == userMessage);
         }
     }
 
@@ -122,7 +122,7 @@ public class ConversationAgentTests
 
             // Assert
             var messages = await conversation.GetMessagesAsync();
-            Assert.Contains(messages, m => m.Role == MessageRole.Assistant && m.Content == expectedResponse);
+            Assert.Contains(messages, m => m.Role == ConversationRole.Assistant && m.Content == expectedResponse);
         }
     }
 
@@ -251,12 +251,12 @@ public class ConversationAgentTests
             // Assert
             var messages = await conversation.GetMessagesAsync();
             Assert.Equal(6, messages.Count); // 3 user messages + 3 assistant messages
-            Assert.Equal(MessageRole.User, messages[0].Role);
-            Assert.Equal(MessageRole.Assistant, messages[1].Role);
-            Assert.Equal(MessageRole.User, messages[2].Role);
-            Assert.Equal(MessageRole.Assistant, messages[3].Role);
-            Assert.Equal(MessageRole.User, messages[4].Role);
-            Assert.Equal(MessageRole.Assistant, messages[5].Role);
+            Assert.Equal(ConversationRole.User, messages[0].Role);
+            Assert.Equal(ConversationRole.Assistant, messages[1].Role);
+            Assert.Equal(ConversationRole.User, messages[2].Role);
+            Assert.Equal(ConversationRole.Assistant, messages[3].Role);
+            Assert.Equal(ConversationRole.User, messages[4].Role);
+            Assert.Equal(ConversationRole.Assistant, messages[5].Role);
         }
     }
 
@@ -306,7 +306,7 @@ public class ConversationAgentTests
         using (ConversationContext.StartConversation(conversation))
         {
             // Add a system message
-            await conversation.AddMessageAsync(MessageRole.System, "You are a helpful assistant", CancellationToken.None);
+            await conversation.AddMessageAsync(ConversationRole.System, "You are a helpful assistant", CancellationToken.None);
 
             // Act
             await agent.SendMessageAsync("Hello", CancellationToken.None);

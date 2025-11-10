@@ -69,7 +69,7 @@ public class ConversationAgentExample : ExampleBase
 
                 // Optional: Add a system message to set the conversation context
                 await conversation.AddMessageAsync(
-                    Interfaces.MessageRole.System,
+                    Interfaces.ConversationRole.System,
                     "You are a helpful AI assistant. Be concise and friendly.",
                     cancellationToken);
 

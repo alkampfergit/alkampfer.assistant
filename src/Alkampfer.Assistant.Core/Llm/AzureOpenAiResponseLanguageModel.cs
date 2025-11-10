@@ -1,7 +1,9 @@
 using System.ClientModel;
 using System.Text;
+using Alkampfer.Assistant.Interfaces;
 using Alkampfer.Assistant.Interfaces.Llm;
 using Azure.AI.OpenAI;
+using OpenAI.Realtime;
 using OpenAI.Responses;
 
 namespace Alkampfer.Assistant.Core.Llm;
@@ -67,6 +69,79 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
 
         var options = new ResponseCreationOptions
         {
+            PreviousResponseId = null,
+            ReasoningOptions = new ResponseReasoningOptions()
+            {
+                ReasoningEffortLevel = _reasoningEffortLevel
+            }
+        };
+
+        var result = await _responseClient.CreateResponseAsync(inputItems, options, cancellationToken);
+
+        OpenAIResponse response = result;
+
+        var responseText = new StringBuilder();
+
+        foreach (var outputItem in response.OutputItems)
+        {
+            if (outputItem is ReasoningResponseItem reasoning)
+            {
+                // Include reasoning summary in the response
+                var summaryText = reasoning.GetSummaryText();
+                if (!string.IsNullOrWhiteSpace(summaryText))
+                {
+                    responseText.AppendLine($"[Reasoning]: {summaryText}");
+                    responseText.AppendLine();
+                }
+            }
+            else if (outputItem is MessageResponseItem message)
+            {
+                responseText.Append(message.Content[0].Text);
+            }
+        }
+
+        // Extract token usage from the response
+        var usage = response.Usage;
+        var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
+
+        return new LanguageModelResponse(responseText.ToString(), statistics, response);
+    }
+
+    /// <inheritdoc/>
+    public async Task<LanguageModelResponse> GenerateResponseAsync(LlmRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (request.Messages == null || request.Messages.Count == 0)
+        {
+            throw new ArgumentException("Request must contain at least one message.", nameof(request));
+        }
+
+        var inputItems = new List<ResponseItem>();
+        foreach (var msg in request.Messages)
+        {
+            // The Response API supports different message types
+            // For now, we'll primarily use user messages for user input
+            // Assistant and system messages may need special handling depending on API support
+            switch (msg.Role)
+            {
+                case ConversationRole.User:
+                    inputItems.Add(ResponseItem.CreateUserMessageItem(msg.Content));
+                    break;
+                case ConversationRole.Assistant:
+                case ConversationRole.System:
+                    // Response API may not support assistant/system items directly in input
+                    // You might need to convert these or handle them differently based on the API
+                    inputItems.Add(ResponseItem.CreateUserMessageItem(msg.Content));
+                    break;
+                default:
+                    throw new ArgumentException($"Unsupported message role: {msg.Role}");
+            }
+        }
+
+        var options = new ResponseCreationOptions
+        {
+            PreviousResponseId = request.PreviousConversationId,
             ReasoningOptions = new ResponseReasoningOptions()
             {
                 ReasoningEffortLevel = _reasoningEffortLevel

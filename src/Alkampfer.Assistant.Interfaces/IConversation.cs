@@ -21,7 +21,7 @@ public interface IConversation
     /// <param name="role">The role of the message sender.</param>
     /// <param name="content">The content of the message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task AddMessageAsync(MessageRole role, string content, CancellationToken cancellationToken = default);
+    Task AddMessageAsync(ConversationRole role, string content, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all messages in the conversation.
@@ -34,4 +34,4 @@ public interface IConversation
 /// <summary>
 /// Represents a message in a conversation.
 /// </summary>
-public record ConversationMessage(MessageRole Role, string Content);
+public record ConversationMessage(ConversationRole Role, string Content);

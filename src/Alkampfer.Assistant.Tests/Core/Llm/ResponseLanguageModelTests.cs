@@ -101,8 +101,8 @@ public class ResponseLanguageModelTests
         }
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
-            _sut!.GenerateResponseAsync(null!));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut!.GenerateResponseAsync((string)null!));
     }
 
     [Fact]
@@ -270,5 +270,139 @@ public class ResponseLanguageModelTests
         Assert.NotEmpty(response.Response);
         // Just verify we got a response with content
         Assert.True(response.Response.Length > 5, "Response should contain meaningful content");
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_ShouldReturnResponse()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "What is 2+2? Reply with only the number.")
+            }
+        };
+
+        // Act
+        var response = await _sut!.GenerateResponseAsync(request);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotNull(response.Response);
+        Assert.NotEmpty(response.Response);
+        Assert.Contains("4", response.Response);
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_WithPreviousConversationId_ShouldAcceptIt()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        // First request to get a conversation ID
+        var request1 = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "Hello")
+            }
+        };
+
+        var response1 = await _sut!.GenerateResponseAsync(request1);
+
+        // Response API returns a response with an ID that can be used for continuation
+        // Extract the response ID if available from the original response object
+        var responseId = (response1.OriginalResponse as OpenAI.Responses.OpenAIResponse)?.Id;
+
+        if (responseId != null)
+        {
+            // Second request using the previous conversation ID
+            var request2 = new LlmRequest
+            {
+                PreviousConversationId = responseId,
+                Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+                {
+                    new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "Continue")
+                }
+            };
+
+            // Act - should not throw
+            var response2 = await _sut!.GenerateResponseAsync(request2);
+
+            // Assert
+            Assert.NotNull(response2);
+            Assert.NotNull(response2.Response);
+        }
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_NullRequest_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _sut!.GenerateResponseAsync((LlmRequest)null!));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_EmptyMessages_ShouldThrowArgumentException()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>()
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut!.GenerateResponseAsync(request));
+    }
+
+    [Fact]
+    public async Task GenerateResponseAsync_WithLlmRequest_MultipleMessages_ShouldIncludeConversationHistory()
+    {
+        // Arrange
+        if (!_canRunTests)
+        {
+            return;
+        }
+
+        var request = new LlmRequest
+        {
+            Messages = new List<Alkampfer.Assistant.Interfaces.ConversationMessage>
+            {
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.System, "You are a helpful assistant."),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "My name is Alice."),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.Assistant, "Nice to meet you, Alice!"),
+                new(Alkampfer.Assistant.Interfaces.ConversationRole.User, "What is my name?")
+            }
+        };
+
+        // Act
+        var response = await _sut!.GenerateResponseAsync(request);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotNull(response.Response);
+        Assert.Contains("Alice", response.Response, StringComparison.OrdinalIgnoreCase);
     }
 }

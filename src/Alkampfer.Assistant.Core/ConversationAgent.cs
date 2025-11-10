@@ -41,7 +41,7 @@ public class ConversationAgent
         var conversation = ConversationContext.CurrentRequired;
 
         // Add the user message to the conversation
-        await conversation.AddMessageAsync(MessageRole.User, userMessage, cancellationToken);
+        await conversation.AddMessageAsync(ConversationRole.User, userMessage, cancellationToken);
 
         // Get all messages to build the prompt
         var messages = await conversation.GetMessagesAsync(cancellationToken);
@@ -53,7 +53,7 @@ public class ConversationAgent
         var response = await _languageModel.GenerateResponseAsync(prompt, cancellationToken);
 
         // Add the assistant's response to the conversation
-        await conversation.AddMessageAsync(MessageRole.Assistant, response.Response, cancellationToken);
+        await conversation.AddMessageAsync(ConversationRole.Assistant, response.Response, cancellationToken);
 
         // Update conversation statistics with token usage
         conversation.Statistics.UpdateStats(
@@ -81,9 +81,9 @@ public class ConversationAgent
         {
             var rolePrefix = message.Role switch
             {
-                MessageRole.System => "System: ",
-                MessageRole.User => "User: ",
-                MessageRole.Assistant => "Assistant: ",
+                ConversationRole.System => "System: ",
+                ConversationRole.User => "User: ",
+                ConversationRole.Assistant => "Assistant: ",
                 _ => ""
             };
 

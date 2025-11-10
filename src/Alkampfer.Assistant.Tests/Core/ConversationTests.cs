@@ -13,12 +13,12 @@ public class ConversationTests
         var conversation = new Conversation();
 
         // Act
-        await conversation.AddMessageAsync(MessageRole.User, "Hello", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.User, "Hello", CancellationToken.None);
 
         // Assert
         var messages = await conversation.GetMessagesAsync(CancellationToken.None);
         Assert.Single(messages);
-        Assert.Equal(MessageRole.User, messages[0].Role);
+        Assert.Equal(ConversationRole.User, messages[0].Role);
         Assert.Equal("Hello", messages[0].Content);
     }
 
@@ -29,18 +29,18 @@ public class ConversationTests
         var conversation = new Conversation();
 
         // Act
-        await conversation.AddMessageAsync(MessageRole.System, "You are a helpful assistant", CancellationToken.None);
-        await conversation.AddMessageAsync(MessageRole.User, "What is 2+2?", CancellationToken.None);
-        await conversation.AddMessageAsync(MessageRole.Assistant, "4", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.System, "You are a helpful assistant", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.User, "What is 2+2?", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.Assistant, "4", CancellationToken.None);
 
         // Assert
         var messages = await conversation.GetMessagesAsync(CancellationToken.None);
         Assert.Equal(3, messages.Count);
-        Assert.Equal(MessageRole.System, messages[0].Role);
+        Assert.Equal(ConversationRole.System, messages[0].Role);
         Assert.Equal("You are a helpful assistant", messages[0].Content);
-        Assert.Equal(MessageRole.User, messages[1].Role);
+        Assert.Equal(ConversationRole.User, messages[1].Role);
         Assert.Equal("What is 2+2?", messages[1].Content);
-        Assert.Equal(MessageRole.Assistant, messages[2].Role);
+        Assert.Equal(ConversationRole.Assistant, messages[2].Role);
         Assert.Equal("4", messages[2].Content);
     }
 
@@ -62,11 +62,11 @@ public class ConversationTests
     {
         // Arrange
         var conversation = new Conversation();
-        await conversation.AddMessageAsync(MessageRole.User, "Test", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.User, "Test", CancellationToken.None);
 
         // Act
         var messages1 = await conversation.GetMessagesAsync(CancellationToken.None);
-        await conversation.AddMessageAsync(MessageRole.Assistant, "Response", CancellationToken.None);
+        await conversation.AddMessageAsync(ConversationRole.Assistant, "Response", CancellationToken.None);
         var messages2 = await conversation.GetMessagesAsync(CancellationToken.None);
 
         // Assert
@@ -82,14 +82,14 @@ public class ConversationTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => conversation.AddMessageAsync(MessageRole.User, null!, CancellationToken.None));
+            () => conversation.AddMessageAsync(ConversationRole.User, null!, CancellationToken.None));
     }
 
     [Theory]
-    [InlineData(MessageRole.System)]
-    [InlineData(MessageRole.User)]
-    [InlineData(MessageRole.Assistant)]
-    public async Task AddMessageAsync_Should_Support_All_Message_Roles(MessageRole role)
+    [InlineData(ConversationRole.System)]
+    [InlineData(ConversationRole.User)]
+    [InlineData(ConversationRole.Assistant)]
+    public async Task AddMessageAsync_Should_Support_All_Message_Roles(ConversationRole role)
     {
         // Arrange
         var conversation = new Conversation();
@@ -116,7 +116,7 @@ public class ConversationTests
         {
             var index = i;
             tasks.Add(Task.Run(async () =>
-                await conversation.AddMessageAsync(MessageRole.User, $"Message {index}", CancellationToken.None)));
+                await conversation.AddMessageAsync(ConversationRole.User, $"Message {index}", CancellationToken.None)));
         }
 
         await Task.WhenAll(tasks);

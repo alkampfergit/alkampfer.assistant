@@ -63,6 +63,46 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
     }
 
     /// <inheritdoc/>
+    public async Task<LanguageModelResponse> GenerateResponseAsync(LlmRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (request.PreviousConversationId != null)
+        {
+            throw new NotSupportedException(
+                "AzureOpenAiChatLanguageModel does not support conversation continuation. " +
+                "PreviousConversationId must be null. Use AzureOpenAiResponseLanguageModel for conversation support.");
+        }
+
+        if (request.Messages == null || request.Messages.Count == 0)
+        {
+            throw new ArgumentException("Request must contain at least one message.", nameof(request));
+        }
+
+        var messages = new List<ChatMessage>();
+        foreach (var msg in request.Messages)
+        {
+            messages.Add(msg.Role switch
+            {
+                ConversationRole.User => ChatMessage.CreateUserMessage(msg.Content),
+                ConversationRole.Assistant => ChatMessage.CreateAssistantMessage(msg.Content),
+                ConversationRole.System => ChatMessage.CreateSystemMessage(msg.Content),
+                _ => throw new ArgumentException($"Unsupported message role: {msg.Role}")
+            });
+        }
+
+        var completion = await _chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+
+        var assistantMessage = completion.Value.Content[0].Text;
+
+        // Extract token usage from the completion
+        var usage = completion.Value.Usage;
+        var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
+
+        return new LanguageModelResponse(assistantMessage, statistics, completion.Value);
+    }
+
+    /// <inheritdoc/>
     public LlmCapabilities GetCapability()
     {
         return new LlmCapabilities
