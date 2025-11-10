@@ -12,11 +12,13 @@ public class LanguageModelResponse
     /// <param name="response">The text response from the language model.</param>
     /// <param name="statistics">Token usage statistics for the request.</param>
     /// <param name="originalResponse">The original response object from the underlying model.</param>
-    public LanguageModelResponse(string response, LanguageModelStatistics statistics, object? originalResponse = null)
+    /// <param name="responseId">Optional unique identifier for this response.</param>
+    public LanguageModelResponse(string response, LanguageModelStatistics statistics, object? originalResponse = null, string? responseId = null)
     {
         Response = response ?? throw new ArgumentNullException(nameof(response));
         Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
         OriginalResponse = originalResponse;
+        ResponseId = responseId;
     }
 
     /// <summary>
@@ -34,6 +36,11 @@ public class LanguageModelResponse
     /// This can be cast to the specific type used by the underlying provider (e.g., Azure OpenAI types).
     /// </summary>
     public object? OriginalResponse { get; }
+
+    /// <summary>
+    /// Gets the unique identifier for this response, if available.
+    /// </summary>
+    public string? ResponseId { get; }
 
     /// <summary>
     /// Returns the response text.

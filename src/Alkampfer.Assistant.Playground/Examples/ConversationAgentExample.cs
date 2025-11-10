@@ -12,7 +12,7 @@ namespace Alkampfer.Assistant.Playground.Examples;
 /// </summary>
 public class ConversationAgentExample : ExampleBase
 {
-    public override string Name => "Conversation Agent with Azure OpenAI";
+    public override string Name => "Conversationwith Azure OpenAI";
 
     public override string Description => "Demonstrates using ConversationAgent with Azure OpenAI for multi-turn conversations";
 

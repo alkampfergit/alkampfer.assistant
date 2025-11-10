@@ -12,4 +12,10 @@ public interface ILanguageModel
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="LanguageModelResponse"/> containing the generated response, statistics, and original response object.</returns>
     Task<LanguageModelResponse> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the capabilities of the language model.
+    /// </summary>
+    /// <returns>A <see cref="LlmCapabilities"/> object describing the model's capabilities.</returns>
+    LlmCapabilities GetCapability();
 }

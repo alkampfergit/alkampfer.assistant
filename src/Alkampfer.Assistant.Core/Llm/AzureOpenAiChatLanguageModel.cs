@@ -61,4 +61,13 @@ public class AzureOpenAiChatLanguageModel : ILanguageModel
 
         return new LanguageModelResponse(assistantMessage, statistics, completion.Value);
     }
+
+    /// <inheritdoc/>
+    public LlmCapabilities GetCapability()
+    {
+        return new LlmCapabilities
+        {
+            SupportConversation = false
+        };
+    }
 }

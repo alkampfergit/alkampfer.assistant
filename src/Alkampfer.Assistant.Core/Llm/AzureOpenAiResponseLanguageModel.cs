@@ -103,6 +103,15 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
 
         return new LanguageModelResponse(responseText.ToString(), statistics, response);
     }
+
+    /// <inheritdoc/>
+    public LlmCapabilities GetCapability()
+    {
+        return new LlmCapabilities
+        {
+            SupportConversation = true
+        };
+    }
 }
 
 #pragma warning restore OPENAI001
