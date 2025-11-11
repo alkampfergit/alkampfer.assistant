@@ -8,6 +8,13 @@ namespace Alkampfer.Assistant.Tests.Core;
 
 public class ConversationAgentTests
 {
+    private static Mock<ILanguageModel> CreateMockLanguageModel(bool supportConversation = false)
+    {
+        var mock = new Mock<ILanguageModel>();
+        mock.Setup(m => m.GetCapability()).Returns(new LlmCapabilities { SupportConversation = supportConversation });
+        return mock;
+    }
+
     [Fact]
     public void Constructor_Should_Throw_When_LanguageModel_Is_Null()
     {
@@ -19,7 +26,8 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Throw_When_No_Conversation_In_Context()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
+        mockModel.Setup(m => m.GetCapability()).Returns(new LlmCapabilities { SupportConversation = false });
         var agent = new ConversationAgent(mockModel.Object);
 
         // Ensure no conversation is set
@@ -34,7 +42,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Throw_When_Message_Is_Null()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         var agent = new ConversationAgent(mockModel.Object);
         var conversation = new Conversation();
 
@@ -50,7 +58,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Throw_When_Message_Is_Empty()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         var agent = new ConversationAgent(mockModel.Object);
         var conversation = new Conversation();
 
@@ -66,7 +74,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Throw_When_Message_Is_Whitespace()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         var agent = new ConversationAgent(mockModel.Object);
         var conversation = new Conversation();
 
@@ -82,7 +90,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Add_User_Message_To_Conversation()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("AI response", new LanguageModelStatistics(10, 20)));
@@ -107,7 +115,7 @@ public class ConversationAgentTests
     {
         // Arrange
         var expectedResponse = "AI response";
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse(expectedResponse, new LanguageModelStatistics(10, 20)));
@@ -131,7 +139,7 @@ public class ConversationAgentTests
     {
         // Arrange
         var expectedResponse = "AI response";
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse(expectedResponse, new LanguageModelStatistics(10, 20)));
@@ -153,7 +161,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Call_GenerateResponseAsync_Once()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)));
@@ -177,7 +185,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Update_Conversation_Statistics()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(100, 50)));
@@ -202,7 +210,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Accumulate_Statistics_Across_Multiple_Calls()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(100, 50)));
@@ -233,7 +241,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Maintain_Conversation_History()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)));
@@ -265,7 +273,7 @@ public class ConversationAgentTests
     {
         // Arrange
         string? capturedPrompt = null;
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)))
@@ -294,7 +302,7 @@ public class ConversationAgentTests
     {
         // Arrange
         string? capturedPrompt = null;
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)))
@@ -322,7 +330,7 @@ public class ConversationAgentTests
     public async Task SendMessageAsync_Should_Work_With_Different_Conversations()
     {
         // Arrange
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)));
@@ -361,7 +369,7 @@ public class ConversationAgentTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LanguageModelResponse("Response", new LanguageModelStatistics(10, 20)));
@@ -386,7 +394,7 @@ public class ConversationAgentTests
     {
         // Arrange
         var cts = new CancellationTokenSource();
-        var mockModel = new Mock<ILanguageModel>();
+        var mockModel = CreateMockLanguageModel();
         mockModel
             .Setup(m => m.GenerateResponseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());

@@ -11,6 +11,8 @@ namespace Alkampfer.Assistant.Core;
 public class ConversationAgent
 {
     private readonly ILanguageModel _languageModel;
+    private readonly bool _supportsConversation;
+    private string? _lastResponseId;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConversationAgent"/> class.
@@ -19,11 +21,19 @@ public class ConversationAgent
     public ConversationAgent(ILanguageModel languageModel)
     {
         _languageModel = languageModel ?? throw new ArgumentNullException(nameof(languageModel));
+        _supportsConversation = _languageModel.GetCapability().SupportConversation;
     }
+
+    /// <summary>
+    /// Gets the last response ID from the language model, if available.
+    /// </summary>
+    public string? LastResponseId => _lastResponseId;
 
     /// <summary>
     /// Sends a user message and gets a response from the language model.
     /// The conversation is maintained in the current ConversationContext.
+    /// If the model supports conversation mode, it will use the previous response ID to continue the conversation
+    /// without rebuilding the entire history.
     /// </summary>
     /// <param name="userMessage">The message from the user.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -43,14 +53,34 @@ public class ConversationAgent
         // Add the user message to the conversation
         await conversation.AddMessageAsync(ConversationRole.User, userMessage, cancellationToken);
 
-        // Get all messages to build the prompt
-        var messages = await conversation.GetMessagesAsync(cancellationToken);
+        LanguageModelResponse response;
 
-        // Build a prompt from the conversation history
-        var prompt = BuildPrompt(messages);
+        if (_supportsConversation)
+        {
+            // Use the request-based API with optional previous conversation ID
+            var request = new LlmRequest
+            {
+                Messages = new List<ConversationMessage> { new ConversationMessage(ConversationRole.User, userMessage) },
+                PreviousConversationId = _lastResponseId
+            };
 
-        // Get response from the language model
-        var response = await _languageModel.GenerateResponseAsync(prompt, cancellationToken);
+            response = await _languageModel.GenerateResponseAsync(request, cancellationToken);
+            
+            // Store the response ID for the next request
+            _lastResponseId = response.ResponseId;
+        }
+        else
+        {
+            // Fall back to traditional prompt-based approach
+            // Get all messages to build the prompt
+            var messages = await conversation.GetMessagesAsync(cancellationToken);
+
+            // Build a prompt from the conversation history
+            var prompt = BuildPrompt(messages);
+
+            // Get response from the language model
+            response = await _languageModel.GenerateResponseAsync(prompt, cancellationToken);
+        }
 
         // Add the assistant's response to the conversation
         await conversation.AddMessageAsync(ConversationRole.Assistant, response.Response, cancellationToken);

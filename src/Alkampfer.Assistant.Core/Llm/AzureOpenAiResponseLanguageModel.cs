@@ -104,7 +104,7 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
         var usage = response.Usage;
         var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
 
-        return new LanguageModelResponse(responseText.ToString(), statistics, response);
+        return new LanguageModelResponse(responseText.ToString(), statistics, response, response.Id);
     }
 
     /// <inheritdoc/>
@@ -176,7 +176,7 @@ public class AzureOpenAiResponseLanguageModel : ILanguageModel
         var usage = response.Usage;
         var statistics = new LanguageModelStatistics(usage.InputTokenCount, usage.OutputTokenCount);
 
-        return new LanguageModelResponse(responseText.ToString(), statistics, response);
+        return new LanguageModelResponse(responseText.ToString(), statistics, response, response.Id);
     }
 
     /// <inheritdoc/>
