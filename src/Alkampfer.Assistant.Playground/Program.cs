@@ -10,7 +10,7 @@ class Program
     {
         // Initialize environment variables from .env file
         DotEnv.Load();
-
+        System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         AnsiConsole.Write(
             new FigletText("Assistant Playground")
                 .Centered()
