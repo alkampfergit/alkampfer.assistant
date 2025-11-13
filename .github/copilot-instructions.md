@@ -34,4 +34,6 @@ Supports pluggable data storage (LiteDB/MongoDB) and AI integration via Semantic
 - Register identity: Call IIdentityManager.RegisterIdentityType<T>() in DI setup
 - UI component: Use MudBlazor in .razor files with @rendermode InteractiveServer
 
-Focus on interfaces in Core, implementations in subfolders. Always test with xUnit.
+Focus on interfaces in Core, implementations in subfolders. 
+Always test with xUnit. 
+Verify that the code compiles correctly after you finish a task.

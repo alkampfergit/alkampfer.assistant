@@ -81,24 +81,19 @@ public class ReasoningModelExample : ExampleBase
             var totalInputTokens = 0;
             var totalOutputTokens = 0;
 
-            // Create the console display with truly sticky header
-            using var display = new ScrollableConversationDisplay();
-
-            // Initialize display - clears screen and renders sticky header
-            display.DisplayInfo.IsConversationActive = true;
-            display.Initialize();
-
-            display.WriteLines(
-                $"[green]Reasoning conversation started![/] [dim](Effort: {reasoningLevel})[/]",
-                "[dim]Type 'exit' or 'quit' to end the conversation.[/]",
-                "[dim]Note: This uses the Response API which is stateless - each message is independent.[/]",
-                string.Empty);
+            AnsiConsole.MarkupLine($"[green]Reasoning conversation started![/] [dim](Effort: {reasoningLevel})[/]");
+            AnsiConsole.MarkupLine("[dim]Type 'exit' or 'quit' to end the conversation.[/]");
+            AnsiConsole.MarkupLine("[dim]Note: This uses the Response API which is stateless - each message is independent.[/]");
+            AnsiConsole.WriteLine();
 
             // Main conversation loop
             while (true)
             {
                 // Get user input
-                var userMessage = display.PromptInput("[blue]You:[/]");
+                var userMessage = AnsiConsole.Prompt(
+                    new TextPrompt<string>("[blue]You:[/]")
+                        .PromptStyle("white")
+                        .AllowEmpty());
 
                 if (string.IsNullOrWhiteSpace(userMessage))
                 {
@@ -112,50 +107,41 @@ public class ReasoningModelExample : ExampleBase
                     break;
                 }
 
-                // Add user message to history and display
-                conversationHistory.Add(("user", userMessage));
-                display.WriteLine($"[blue]You:[/] {userMessage}");
+                // Add user message to history
+                conversationHistory.Add((Role: "user", Message: userMessage));
 
                 try
                 {
                     // Generate response with reasoning
-                    LanguageModelResponse response = await display.ShowStatusAsync(
-                        "Thinking with reasoning...",
-                        async () => await languageModel.GenerateResponseAsync(userMessage, cancellationToken));
+                    LanguageModelResponse response = await AnsiConsole.Status()
+                        .Spinner(Spinner.Known.Dots)
+                        .SpinnerStyle(Style.Parse("green"))
+                        .StartAsync("Thinking with reasoning...", async ctx =>
+                            await languageModel.GenerateResponseAsync(userMessage, cancellationToken));
 
                     // Add assistant response to history
-                    conversationHistory.Add(("assistant", response.Response));
+                    conversationHistory.Add((Role: "assistant", Message: response.Response));
 
                     // Update token statistics
                     totalInputTokens += response.Statistics.InputTokens;
                     totalOutputTokens += response.Statistics.OutputTokens;
 
-                    // Update display header with new statistics
-                    display.DisplayInfo.TotalInputTokens = totalInputTokens;
-                    display.DisplayInfo.TotalOutputTokens = totalOutputTokens;
-                    display.DisplayInfo.LastCallInputTokens = response.Statistics.InputTokens;
-                    display.DisplayInfo.LastCallOutputTokens = response.Statistics.OutputTokens;
-                    display.RenderHeader();
-
                     // Display the assistant's response
-                    display.WriteLines(
-                        $"[green]Assistant:[/] {response.Response}",
-                        string.Empty);
+                    AnsiConsole.MarkupLine($"[green]Assistant:[/] {response.Response}");
+
+                    // Display token statistics after each response
+                    AnsiConsole.MarkupLine($"[dim]Tokens - In: {response.Statistics.InputTokens:N0} | Out: {response.Statistics.OutputTokens:N0} | Total this call: {response.Statistics.InputTokens + response.Statistics.OutputTokens:N0}[/]");
+                    AnsiConsole.WriteLine();
                 }
                 catch (Exception ex)
                 {
-                    display.WriteLines(
-                        $"[red]Error: {ex.Message}[/]",
-                        string.Empty);
+                    AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+                    AnsiConsole.WriteLine();
                 }
             }
 
-            // End the conversation - restore normal console
-            display.WriteLine(string.Empty);
-            display.WriteLine("[yellow]═══════════════════════════════════════════[/]");
-
-            // Clear and show final statistics in normal mode
-            AnsiConsole.Clear();
+            // Show final statistics
+            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[green]Conversation ended.[/]");
             AnsiConsole.WriteLine();
             DisplayStatistics(totalInputTokens, totalOutputTokens, conversationHistory.Count / 2);

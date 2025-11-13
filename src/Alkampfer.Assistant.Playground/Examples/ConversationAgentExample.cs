@@ -52,20 +52,12 @@ public class ConversationAgentExample : ExampleBase
             // Create a new conversation
             var conversation = new Conversation();
 
-            // Create the console display with truly sticky header
-            using var display = new ScrollableConversationDisplay();
-
             // Start the conversation context (using statement ensures it's cleaned up)
             using (ConversationContext.StartConversation(conversation))
             {
-                // Initialize display - clears screen and renders sticky header
-                display.UpdateFromConversation(conversation);
-                display.Initialize();
-
-                display.WriteLines(
-                    "[green]Conversation started![/]",
-                    "[dim]Type 'exit' or 'quit' to end the conversation.[/]",
-                    string.Empty);
+                AnsiConsole.MarkupLine("[green]Conversation started![/]");
+                AnsiConsole.MarkupLine("[dim]Type 'exit' or 'quit' to end the conversation.[/]");
+                AnsiConsole.WriteLine();
 
                 // Optional: Add a system message to set the conversation context
                 await conversation.AddMessageAsync(
@@ -77,7 +69,10 @@ public class ConversationAgentExample : ExampleBase
                 while (true)
                 {
                     // Get user input
-                    var userMessage = display.PromptInput("[blue]You:[/]");
+                    var userMessage = AnsiConsole.Prompt(
+                        new TextPrompt<string>("[blue]You:[/]")
+                            .PromptStyle("white")
+                            .AllowEmpty());
 
                     if (string.IsNullOrWhiteSpace(userMessage))
                     {
@@ -94,37 +89,29 @@ public class ConversationAgentExample : ExampleBase
                     // Send the message and get a response
                     try
                     {
-                        // Add user message to display
-                        display.WriteLine($"[blue]You:[/] {userMessage}");
-
-                        string response = await display.ShowStatusAsync(
-                            "Thinking...",
-                            async () => await agent.SendMessageAsync(userMessage, cancellationToken));
-
-                        // Update the display with new statistics and re-render header
-                        display.UpdateFromConversation(conversation);
-                        display.RenderHeader();
+                        string response = await AnsiConsole.Status()
+                            .Spinner(Spinner.Known.Dots)
+                            .SpinnerStyle(Style.Parse("green"))
+                            .StartAsync("Thinking...", async ctx =>
+                                await agent.SendMessageAsync(userMessage, cancellationToken));
 
                         // Display the assistant's response
-                        display.WriteLines(
-                            $"[green]Assistant:[/] {response}",
-                            string.Empty);
+                        AnsiConsole.MarkupLine($"[green]Assistant:[/] {response}");
+
+                        // Display token statistics after each response
+                        AnsiConsole.MarkupLine($"[dim]Tokens - In: {conversation.Statistics.LastCallInputTokens:N0} | Out: {conversation.Statistics.LastCallOutputTokens:N0} | Total this call: {conversation.Statistics.LastCallInputTokens + conversation.Statistics.LastCallOutputTokens:N0}[/]");
+                        AnsiConsole.WriteLine();
                     }
                     catch (Exception ex)
                     {
-                        display.WriteLines(
-                            $"[red]Error: {ex.Message}[/]",
-                            string.Empty);
+                        AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+                        AnsiConsole.WriteLine();
                     }
                 }
-
-                // End the conversation - restore normal console
-                display.WriteLine(string.Empty);
-                display.WriteLine("[yellow]═══════════════════════════════════════════[/]");
             }
 
-            // Clear and show final statistics in normal mode
-            AnsiConsole.Clear();
+            // Show final statistics
+            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[green]Conversation ended.[/]");
             AnsiConsole.WriteLine();
             DisplayStatistics(conversation);
