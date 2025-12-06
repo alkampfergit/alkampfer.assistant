@@ -15,6 +15,7 @@ namespace Alkampfer.Assistant.Tests.Core.Llm;
 /// Integration tests for AzureOpenAiResponseLanguageModel.
 /// Requires AZURE_ENDPOINT, OPENAI_API_KEY, and AZURE_MODEL environment variables.
 /// </summary>
+[Trait("Category", "Integration")]
 public class ResponseLanguageModelTests
 {
     private readonly AzureOpenAiResponseLanguageModel? _sut;

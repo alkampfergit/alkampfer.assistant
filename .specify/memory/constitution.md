@@ -52,6 +52,13 @@ features, PATCH for fixes and clarifications.
 - Nullability: nullable reference types enabled; prefer explicit nullability.
 - Async-first: public APIs SHOULD be async and accept `CancellationToken`.
 - External adapters (Azure OpenAI etc.) live under `Alkampfer.Assistant.Core/Llm`.
+- Saving big data (url content, files) is done in an abstraction over file system.
+
+## User interface
+
+- Asp.NET Blazor server side hosted in the project `src/Alkampfer.Assistant.Host/Alkampfer.Assistant.Host.csproj`.
+- The interface should be user friendly and intuitive.
+
 
 ## Development Workflow
 

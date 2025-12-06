@@ -20,6 +20,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <TestFilter Condition="'$(TestFilter)' == ''">Category!=Integration</TestFilter>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>

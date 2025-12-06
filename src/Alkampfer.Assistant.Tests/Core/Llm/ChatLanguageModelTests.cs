@@ -12,6 +12,7 @@ namespace Alkampfer.Assistant.Tests.Core.Llm;
 /// Integration tests for AzureOpenAiChatLanguageModel.
 /// Requires AZURE_ENDPOINT, OPENAI_API_KEY, and AZURE_MODEL environment variables.
 /// </summary>
+[Trait("Category", "Integration")]
 public class ChatLanguageModelTests
 {
     private readonly AzureOpenAiChatLanguageModel? _sut;
