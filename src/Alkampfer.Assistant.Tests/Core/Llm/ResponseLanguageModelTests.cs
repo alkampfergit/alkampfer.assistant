@@ -77,7 +77,7 @@ public class ResponseLanguageModelTests
             return;
         }
 
-        var firstPrompt = "My favorite color is green.";
+        var firstPrompt = "My favorite color is pervinca.";
         var secondPrompt = "What is my favorite color?";
 
         // Act
@@ -88,7 +88,7 @@ public class ResponseLanguageModelTests
         Assert.NotNull(response);
         Assert.NotNull(response.Response);
         // Since it's stateless, the model should NOT remember the previous conversation
-        Assert.DoesNotContain("green", response.Response, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("pervinca", response.Response, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
