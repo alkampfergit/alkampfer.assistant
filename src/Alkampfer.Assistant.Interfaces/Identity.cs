@@ -16,8 +16,8 @@ public abstract class Identity : IEquatable<Identity>
         if (parts.Length != 2)
             throw new ArgumentException($"Invalid identity format. Expected 'prefix/numericId', got '{value}'", nameof(value));
 
-        var prefix = parts[0];
-        if (string.IsNullOrWhiteSpace(prefix))
+        var parsedPrefix = parts[0];
+        if (string.IsNullOrWhiteSpace(parsedPrefix))
             throw new ArgumentException($"Prefix cannot be null or empty in identity '{value}'", nameof(value));
 
         if (!long.TryParse(parts[1], out var numericId))
@@ -25,6 +25,13 @@ public abstract class Identity : IEquatable<Identity>
 
         if (numericId < 0)
             throw new ArgumentException($"Numeric id must be non-negative in identity '{value}'", nameof(value));
+
+        // Validate that the parsed prefix matches the expected prefix (case-insensitive)
+        var expectedPrefix = Prefix;
+        if (!string.Equals(parsedPrefix, expectedPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException(
+                $"Invalid prefix in identity '{value}'. Expected '{expectedPrefix}' but got '{parsedPrefix}'",
+                nameof(value));
 
         NumericId = numericId;
     }
@@ -41,8 +48,19 @@ public abstract class Identity : IEquatable<Identity>
     public string Value { get; }
     public long NumericId { get; }
 
-    protected abstract string Prefix { get; }
-
+    protected virtual string Prefix
+    {
+        get
+        {
+            var typeName = GetType().Name;
+            // Remove "Id" suffix if present
+            if (typeName.EndsWith("Id", StringComparison.Ordinal) && typeName.Length > 2)
+            {
+                return typeName[..^2];
+            }
+            return typeName;
+        }
+    }
 
     public override string ToString() => Value;
 
@@ -53,12 +71,12 @@ public abstract class Identity : IEquatable<Identity>
 
     public bool Equals(Identity? other)
     {
-        return other != null && Value == other.Value;
+        return other != null && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
     }
 
     public override int GetHashCode()
     {
-        return Value.GetHashCode();
+        return StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
     }
 
     public static bool operator ==(Identity? left, Identity? right)

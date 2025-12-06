@@ -53,6 +53,7 @@ features, PATCH for fixes and clarifications.
 - Async-first: public APIs SHOULD be async and accept `CancellationToken`.
 - External adapters (Azure OpenAI etc.) live under `Alkampfer.Assistant.Core/Llm`.
 - Saving big data (url content, files) is done in an abstraction over file system.
+- Identities are managed by a specific interface and are in the form of prefix/sequence 
 
 ## User interface
 

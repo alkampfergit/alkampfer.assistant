@@ -1,0 +1,264 @@
+openapi: 3.0.3
+info:
+  title: Bookmark Manager API
+  version: 0.2.0
+paths:
+  /bookmarks:
+    post:
+      summary: Create a bookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+    get:
+      summary: List bookmarks
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter bookmarks by tag
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bookmark'
+  /bookmarks/{id}:
+    get:
+      summary: Get bookmark details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+    patch:
+      summary: Update bookmark (title, tags)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+    delete:
+      summary: Delete bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  /bookmarks/{id}/download:
+    post:
+      summary: Trigger download/extraction for a bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Accepted
+  /bookmarks/{id}/content:
+    post:
+      summary: Manually upload content for a bookmark (markdown text or zip with markdown+images)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          text/markdown:
+            schema:
+              type: string
+          application/zip:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Memory created and linked to bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+  /memories:
+    post:
+      summary: Create a standalone memory (markdown content)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+    get:
+      summary: List memories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Memory'
+  /memories/{id}:
+    get:
+      summary: Get memory details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+  /memories/{id}/content:
+    get:
+      summary: Get raw markdown content of a memory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            text/markdown:
+              schema:
+                type: string
+components:
+  schemas:
+    BookmarkCreate:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    BookmarkUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    Bookmark:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [new, downloaded, error]
+        last_error:
+          type: string
+          nullable: true
+        memory_id:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    MemoryCreate:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          description: Markdown content
+    Memory:
+      type: object
+      properties:
+        id:
+          type: string
+        content_path:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              path:
+                type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
