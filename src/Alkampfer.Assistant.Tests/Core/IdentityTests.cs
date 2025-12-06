@@ -18,7 +18,7 @@ public class IdentityTests
         // Assert
         Assert.Equal(value, identity.Value);
         Assert.Equal(123, identity.NumericId);
-        Assert.Equal("Test", identity.GetPrefix());
+        Assert.Equal("Test", Identity.GetPrefix(typeof(TestId)));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class IdentityTests
         // Assert
         Assert.Equal("Test/456", identity.Value);
         Assert.Equal(456, identity.NumericId);
-        Assert.Equal("Test", identity.GetPrefix());
+        Assert.Equal("Test", Identity.GetPrefix(typeof(TestId)));
     }
 
     [Theory]
@@ -99,16 +99,16 @@ public class IdentityTests
     [InlineData("TEST/123")]
     [InlineData("TeSt/123")]
     [InlineData("Test/123")]
-    public void Constructor_WithDifferentCasing_ShouldBeCaseInsensitive(string value)
+    public void Constructor_WithDifferentCasing_ShouldNormalizeToCorrectCasing(string value)
     {
         // Act
         var identity = new TestId(value);
 
         // Assert
         Assert.Equal(123, identity.NumericId);
-        Assert.Equal("Test", identity.GetPrefix());
-        // Value should preserve the original casing
-        Assert.Equal(value, identity.Value);
+        Assert.Equal("Test", Identity.GetPrefix(typeof(TestId)));
+        // Value should always use the correct prefix casing, not the original
+        Assert.Equal("Test/123", identity.Value);
     }
 
     [Fact]
@@ -230,8 +230,8 @@ public class IdentityTests
 
     [Theory]
     [InlineData("Document/123")]
-    [InlineData("Alternative/456")]
-    [InlineData("custom/789")]
+    [InlineData("AlternativeTest/456")]
+    [InlineData("SomeOther/789")]
     public void Constructor_WithDifferentPrefix_ShouldThrowArgumentException(string wrongValue)
     {
         // Act & Assert
@@ -240,17 +240,18 @@ public class IdentityTests
     }
 
     [Theory]
-    [InlineData("test/100")] // lowercase should work (case insensitive)
-    [InlineData("TEST/200")] // uppercase should work (case insensitive)
-    [InlineData("TeSt/300")] // mixed case should work (case insensitive)
-    public void Constructor_WithCorrectPrefixDifferentCasing_ShouldWork(string value)
+    [InlineData("test/100", "Test/100")] // lowercase should be normalized
+    [InlineData("TEST/200", "Test/200")] // uppercase should be normalized
+    [InlineData("TeSt/300", "Test/300")] // mixed case should be normalized
+    public void Constructor_WithCorrectPrefixDifferentCasing_ShouldNormalize(string input, string expectedValue)
     {
         // Act
-        var identity = new TestId(value);
+        var identity = new TestId(input);
 
         // Assert
         Assert.NotNull(identity);
-        Assert.Equal("Test", identity.GetPrefix());
+        Assert.Equal("Test", Identity.GetPrefix(typeof(TestId)));
+        Assert.Equal(expectedValue, identity.Value);
     }
 
     [Fact]
@@ -327,16 +328,16 @@ public class IdentityTests
     }
 
     [Theory]
-    [InlineData("test/1")]
-    [InlineData("Test/999999999")]
-    [InlineData("TEST/0")]
-    public void Constructor_WithValidFormats_ShouldParseCorrectly(string validValue)
+    [InlineData("test/1", "Test/1")]
+    [InlineData("Test/999999999", "Test/999999999")]
+    [InlineData("TEST/0", "Test/0")]
+    public void Constructor_WithValidFormats_ShouldNormalizeValue(string input, string expectedValue)
     {
         // Act
-        var identity = new TestId(validValue);
+        var identity = new TestId(input);
 
         // Assert
-        Assert.Equal(validValue, identity.Value);
+        Assert.Equal(expectedValue, identity.Value);
         Assert.True(identity.NumericId >= 0);
     }
 
@@ -351,28 +352,19 @@ public class IdentityTests
     }
 
     [Fact]
-    public void Prefix_ShouldBeAutomaticallyDerivedFromClassName()
+    public void GetPrefix_ShouldAutomaticallyDeriveFromClassName()
     {
-        // Arrange & Act
-        var testId = new TestId("Test/123");
-        var altId = new AlternativeTestId("AlternativeTest/456");
-        var docId = new DocumentId("Document/789");
-
         // Act & Assert
-        Assert.Equal("Test", testId.GetPrefix());
-        Assert.Equal("AlternativeTest", altId.GetPrefix());
-        Assert.Equal("Document", docId.GetPrefix());
+        Assert.Equal("Test", Identity.GetPrefix(typeof(TestId)));
+        Assert.Equal("AlternativeTest", Identity.GetPrefix(typeof(AlternativeTestId)));
+        Assert.Equal("Document", Identity.GetPrefix(typeof(DocumentId)));
     }
 
     [Fact]
-    public void Prefix_CanBeOverriddenByDerivedClass()
+    public void GetPrefix_ShouldHandleTypeWithoutIdSuffix()
     {
-        // Arrange & Act
-        var customId = new CustomPrefixId("custom/100");
-
-        // Assert
-        Assert.Equal("custom", customId.GetPrefix());
-        Assert.Equal("custom/100", customId.Value);
+        // Act & Assert - if a type doesn't end with "Id", it returns the full name
+        Assert.Equal("Identity", Identity.GetPrefix(typeof(Identity)));
     }
 
     [Fact]
@@ -390,29 +382,23 @@ public class IdentityTests
         var docId = new DocumentId("Document/123");
 
         // Assert
-        Assert.Equal("Document", docId.GetPrefix());
+        Assert.Equal("Document", Identity.GetPrefix(typeof(DocumentId)));
         Assert.Equal("Document/123", docId.Value);
         Assert.Equal(123, docId.NumericId);
     }
 
-    [Fact]
-    public void CustomPrefixId_WithWrongPrefix_ShouldThrowArgumentException()
+    [Theory]
+    [InlineData("document/100", "Document/100")]
+    [InlineData("DOCUMENT/200", "Document/200")]
+    [InlineData("Document/300", "Document/300")]
+    public void DocumentId_WithDifferentCasing_ShouldNormalizeValue(string input, string expectedValue)
     {
-        // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() => new CustomPrefixId("Test/123"));
-        Assert.Contains("prefix", ex.Message.ToLower());
-    }
-
-    [Fact]
-    public void CustomPrefixId_WithCorrectPrefix_ShouldWork()
-    {
-        // Arrange & Act - custom prefix is "custom" not "CustomPrefix"
-        var customId = new CustomPrefixId("custom/456");
+        // Act
+        var docId = new DocumentId(input);
 
         // Assert
-        Assert.Equal("custom", customId.GetPrefix());
-        Assert.Equal("custom/456", customId.Value);
-        Assert.Equal(456, customId.NumericId);
+        Assert.Equal(expectedValue, docId.Value);
+        Assert.Equal("Document", Identity.GetPrefix(typeof(DocumentId)));
     }
 }
 
@@ -425,8 +411,6 @@ internal class TestId : Identity
     public TestId(long numericId) : base(numericId)
     {
     }
-
-    public string GetPrefix() => Prefix;
 }
 
 internal class AlternativeTestId : Identity
@@ -438,8 +422,6 @@ internal class AlternativeTestId : Identity
     public AlternativeTestId(long numericId) : base(numericId)
     {
     }
-
-    public string GetPrefix() => Prefix;
 }
 
 internal class DocumentId : Identity
@@ -451,21 +433,4 @@ internal class DocumentId : Identity
     public DocumentId(long numericId) : base(numericId)
     {
     }
-
-    public string GetPrefix() => Prefix;
-}
-
-internal class CustomPrefixId : Identity
-{
-    public CustomPrefixId(string value) : base(value)
-    {
-    }
-
-    public CustomPrefixId(long numericId) : base(numericId)
-    {
-    }
-
-    protected override string Prefix => "custom";
-
-    public string GetPrefix() => Prefix;
 }

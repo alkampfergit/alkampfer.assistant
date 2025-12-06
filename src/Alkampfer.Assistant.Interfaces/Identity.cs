@@ -4,12 +4,27 @@ namespace Alkampfer.Assistant.Interfaces;
 
 public abstract class Identity : IEquatable<Identity>
 {
+    /// <summary>
+    /// Gets the prefix for the specified identity type.
+    /// The prefix is derived from the type name by removing the "Id" suffix if present.
+    /// </summary>
+    /// <param name="identityType">The identity type</param>
+    /// <returns>The prefix for the identity type</returns>
+    public static string GetPrefix(Type identityType)
+    {
+        var typeName = identityType.Name;
+        // Remove "Id" suffix if present
+        if (typeName.EndsWith("Id", StringComparison.Ordinal) && typeName.Length > 2)
+        {
+            return typeName[..^2];
+        }
+        return typeName;
+    }
+
     protected Identity(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Identity value cannot be null or empty", nameof(value));
-
-        Value = value;
 
         // Parse the value to extract prefix and numeric id
         var parts = value.Split('/');
@@ -27,13 +42,16 @@ public abstract class Identity : IEquatable<Identity>
             throw new ArgumentException($"Numeric id must be non-negative in identity '{value}'", nameof(value));
 
         // Validate that the parsed prefix matches the expected prefix (case-insensitive)
-        var expectedPrefix = Prefix;
+        var expectedPrefix = GetPrefix(GetType());
         if (!string.Equals(parsedPrefix, expectedPrefix, StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException(
                 $"Invalid prefix in identity '{value}'. Expected '{expectedPrefix}' but got '{parsedPrefix}'",
                 nameof(value));
 
         NumericId = numericId;
+
+        // Always store the value with the correct prefix casing
+        Value = $"{expectedPrefix}/{numericId}";
     }
 
     protected Identity(long numericId)
@@ -42,25 +60,11 @@ public abstract class Identity : IEquatable<Identity>
             throw new ArgumentException("Numeric id must be non-negative", nameof(numericId));
 
         NumericId = numericId;
-        Value = $"{Prefix}/{numericId}";
+        Value = $"{GetPrefix(GetType())}/{numericId}";
     }
 
     public string Value { get; }
     public long NumericId { get; }
-
-    protected virtual string Prefix
-    {
-        get
-        {
-            var typeName = GetType().Name;
-            // Remove "Id" suffix if present
-            if (typeName.EndsWith("Id", StringComparison.Ordinal) && typeName.Length > 2)
-            {
-                return typeName[..^2];
-            }
-            return typeName;
-        }
-    }
 
     public override string ToString() => Value;
 

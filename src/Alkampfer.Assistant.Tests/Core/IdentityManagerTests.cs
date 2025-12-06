@@ -9,35 +9,32 @@ using Xunit;
 namespace Alkampfer.Assistant.Tests.Core;
 
 // Test identity classes for testing purposes
+// Note: Prefix is automatically derived from class name (without "Id" suffix)
+// TestUserId -> "TestUser"
 public class TestUserId : Identity
 {
-    protected override string Prefix => "user";
-    
     public TestUserId(string value) : base(value) { }
     public TestUserId(long numericId) : base(numericId) { }
 }
 
+// TestOrderId -> "TestOrder"
 public class TestOrderId : Identity
 {
-    protected override string Prefix => "order";
-    
     public TestOrderId(string value) : base(value) { }
     public TestOrderId(long numericId) : base(numericId) { }
 }
 
+// TestProductId -> "TestProduct"
 public class TestProductId : Identity
 {
-    protected override string Prefix => "product";
-    
     public TestProductId(string value) : base(value) { }
     public TestProductId(long numericId) : base(numericId) { }
 }
 
 // Invalid test identity class without proper constructors
+// InvalidTestId -> "InvalidTest"
 public class InvalidTestId : Identity
 {
-    protected override string Prefix => "invalid";
-    
     // Missing constructor with long parameter
     public InvalidTestId(string value) : base(value) { }
 }
@@ -84,13 +81,13 @@ public class IdentityManagerTests
     {
         // Arrange
         _manager.RegisterIdentityType<TestUserId>();
-        
+
         // Act
-        var result = _manager.Parse("user/123");
-        
+        var result = _manager.Parse("TestUser/123");
+
         // Assert
         Assert.IsType<TestUserId>(result);
-        Assert.Equal("user/123", result.Value);
+        Assert.Equal("TestUser/123", result.Value);
         Assert.Equal(123, result.NumericId);
     }
     
@@ -103,21 +100,21 @@ public class IdentityManagerTests
         _manager.RegisterIdentityType<TestProductId>();
         
         // Act
-        var userResult = _manager.Parse("user/456");
-        var orderResult = _manager.Parse("order/789");
-        var productResult = _manager.Parse("product/101");
-        
+        var userResult = _manager.Parse("TestUser/456");
+        var orderResult = _manager.Parse("TestOrder/789");
+        var productResult = _manager.Parse("TestProduct/101");
+
         // Assert
         Assert.IsType<TestUserId>(userResult);
-        Assert.Equal("user/456", userResult.Value);
+        Assert.Equal("TestUser/456", userResult.Value);
         Assert.Equal(456, userResult.NumericId);
-        
+
         Assert.IsType<TestOrderId>(orderResult);
-        Assert.Equal("order/789", orderResult.Value);
+        Assert.Equal("TestOrder/789", orderResult.Value);
         Assert.Equal(789, orderResult.NumericId);
-        
+
         Assert.IsType<TestProductId>(productResult);
-        Assert.Equal("product/101", productResult.Value);
+        Assert.Equal("TestProduct/101", productResult.Value);
         Assert.Equal(101, productResult.NumericId);
     }
     
@@ -166,7 +163,7 @@ public class IdentityManagerTests
         Assert.Contains("Invalid identity format. Expected 'prefix/numericId'", noSlashException.Message);
         
         var multipleSlashException = Assert.Throws<ArgumentException>(() => 
-            _manager.Parse("user/123/extra"));
+            _manager.Parse("TestUser/123/extra"));
         Assert.Contains("Invalid identity format. Expected 'prefix/numericId'", multipleSlashException.Message);
     }
     
@@ -175,15 +172,15 @@ public class IdentityManagerTests
     {
         // Arrange
         _manager.RegisterIdentityType<TestUserId>();
-        
+
         // Act & Assert
-        var nonNumericException = Assert.Throws<ArgumentException>(() => 
-            _manager.Parse("user/abc"));
-        Assert.Contains("Invalid numeric id in identity 'user/abc'", nonNumericException.Message);
-        
-        var negativeException = Assert.Throws<ArgumentException>(() => 
-            _manager.Parse("user/-123"));
-        Assert.Contains("Numeric id must be non-negative in identity 'user/-123'", negativeException.Message);
+        var nonNumericException = Assert.Throws<ArgumentException>(() =>
+            _manager.Parse("TestUser/abc"));
+        Assert.Contains("Invalid numeric id in identity 'TestUser/abc'", nonNumericException.Message);
+
+        var negativeException = Assert.Throws<ArgumentException>(() =>
+            _manager.Parse("TestUser/-123"));
+        Assert.Contains("Numeric id must be non-negative in identity 'TestUser/-123'", negativeException.Message);
     }
     
     [Fact]
@@ -206,7 +203,7 @@ public class IdentityManagerTests
         _manager.RegisterIdentityType<TestUserId>(); // Should overwrite, not throw
         
         // Should still work correctly
-        var result = _manager.Parse("user/123");
+        var result = _manager.Parse("TestUser/123");
         Assert.IsType<TestUserId>(result);
     }
     
@@ -217,11 +214,11 @@ public class IdentityManagerTests
         _manager.RegisterIdentityType<TestUserId>();
         
         // Act
-        var result = _manager.Parse("user/0");
+        var result = _manager.Parse("TestUser/0");
         
         // Assert
         Assert.IsType<TestUserId>(result);
-        Assert.Equal("user/0", result.Value);
+        Assert.Equal("TestUser/0", result.Value);
         Assert.Equal(0, result.NumericId);
     }
     
@@ -232,11 +229,11 @@ public class IdentityManagerTests
         _manager.RegisterIdentityType<TestUserId>();
         
         // Act
-        var result = _manager.Parse("user/9223372036854775807"); // long.MaxValue
+        var result = _manager.Parse("TestUser/9223372036854775807"); // long.MaxValue
         
         // Assert
         Assert.IsType<TestUserId>(result);
-        Assert.Equal("user/9223372036854775807", result.Value);
+        Assert.Equal("TestUser/9223372036854775807", result.Value);
         Assert.Equal(9223372036854775807, result.NumericId);
     }
     
@@ -245,13 +242,14 @@ public class IdentityManagerTests
     {
         // Arrange
         _manager.RegisterIdentityType<TestUserId>();
-        
+
         // Act
-        var result = _manager.Parse("user/00123");
-        
+        var result = _manager.Parse("TestUser/00123");
+
         // Assert
         Assert.IsType<TestUserId>(result);
-        Assert.Equal("user/00123", result.Value);
+        // Value is normalized to remove leading zeros
+        Assert.Equal("TestUser/123", result.Value);
         Assert.Equal(123, result.NumericId); // Parsed value should be 123
     }
     
@@ -287,9 +285,9 @@ public class IdentityManagerTests
         Assert.Empty(exceptions);
         
         // All types should be registered and parsing should work
-        var userResult = _manager.Parse("user/1");
-        var orderResult = _manager.Parse("order/2");
-        var productResult = _manager.Parse("product/3");
+        var userResult = _manager.Parse("TestUser/1");
+        var orderResult = _manager.Parse("TestOrder/2");
+        var productResult = _manager.Parse("TestProduct/3");
         
         Assert.IsType<TestUserId>(userResult);
         Assert.IsType<TestOrderId>(orderResult);
@@ -312,9 +310,9 @@ public class IdentityManagerTests
         Assert.IsType<TestUserId>(second);
         Assert.IsType<TestUserId>(third);
         
-        Assert.Equal("user/1", first.Value);
-        Assert.Equal("user/2", second.Value);
-        Assert.Equal("user/3", third.Value);
+        Assert.Equal("TestUser/1", first.Value);
+        Assert.Equal("TestUser/2", second.Value);
+        Assert.Equal("TestUser/3", third.Value);
         
         Assert.Equal(1, first.NumericId);
         Assert.Equal(2, second.NumericId);
@@ -328,18 +326,18 @@ public class IdentityManagerTests
         _manager.RegisterIdentityType<TestOrderId>();
         
         // Act
-        var first = await _manager.GenerateNewAsync("order");
-        var second = await _manager.GenerateNewAsync("order");
-        var third = await _manager.GenerateNewAsync("order");
+        var first = await _manager.GenerateNewAsync("TestOrder");
+        var second = await _manager.GenerateNewAsync("TestOrder");
+        var third = await _manager.GenerateNewAsync("TestOrder");
         
         // Assert
         Assert.IsType<TestOrderId>(first);
         Assert.IsType<TestOrderId>(second);
         Assert.IsType<TestOrderId>(third);
         
-        Assert.Equal("order/1", first.Value);
-        Assert.Equal("order/2", second.Value);
-        Assert.Equal("order/3", third.Value);
+        Assert.Equal("TestOrder/1", first.Value);
+        Assert.Equal("TestOrder/2", second.Value);
+        Assert.Equal("TestOrder/3", third.Value);
         
         Assert.Equal(1, first.NumericId);
         Assert.Equal(2, second.NumericId);
@@ -360,10 +358,10 @@ public class IdentityManagerTests
         var order2 = await _manager.GenerateNewAsync<TestOrderId>();
         
         // Assert
-        Assert.Equal("user/1", user1.Value);
-        Assert.Equal("order/1", order1.Value);
-        Assert.Equal("user/2", user2.Value);
-        Assert.Equal("order/2", order2.Value);
+        Assert.Equal("TestUser/1", user1.Value);
+        Assert.Equal("TestOrder/1", order1.Value);
+        Assert.Equal("TestUser/2", user2.Value);
+        Assert.Equal("TestOrder/2", order2.Value);
     }
 
     [Fact]

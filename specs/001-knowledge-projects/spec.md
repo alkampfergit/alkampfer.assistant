@@ -81,7 +81,7 @@ Implementation decision: Embeddings/indexing are deferred for this iteration. Th
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can successfully download and index a standard web page (e.g., a blog post) in under 30 seconds.
+- **SC-001**: Users can successfully download and store a standard web page (e.g., a blog post) in under 30 seconds.
 
 ## Assumptions & Out of Scope
 
@@ -97,7 +97,6 @@ Implementation decision: Embeddings/indexing are deferred for this iteration. Th
 
 - Q: Which scraping approach should the implementation use for fetching bookmark content? → A: C (Hybrid: attempt basic fetch+extraction first, fallback to headless rendering on failure).
 - Q: Which storage model should be used for extracted bookmark content? → A: B (Memory entity with filesystem-backed raw content).
- - Q: Which storage model should be used for extracted bookmark content? → A: B (Memory entity with filesystem-backed raw content).
 - Q: Which embedding/indexing strategy should we use? → A: A (No embeddings/indexing now — store raw/Markdown only).
 - Q: Should users be able to manually insert bookmark content when extraction fails? → A: Yes (allow paste/upload creating a `Memory` record with `extraction_status: manual`).
 - Q: Should extracted content be converted to Markdown and images downloaded? → A: Yes (produce Markdown output; download images into filesystem abstraction and reference local paths).
