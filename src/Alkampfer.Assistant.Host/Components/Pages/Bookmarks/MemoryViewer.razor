@@ -1,0 +1,62 @@
+@using Alkampfer.Assistant.Interfaces.Memories
+@inject IMemoryService MemoryService
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_content == null)
+{
+    <MudText>Content not found.</MudText>
+}
+else
+{
+    <MudTabs>
+        <MudTabPanel Text="Preview">
+            <div class="markdown-body pa-4" style="overflow-x: auto;">
+                @* Simple whitespace preservation for now *@
+                <pre style="white-space: pre-wrap;">@_content</pre>
+            </div>
+        </MudTabPanel>
+        <MudTabPanel Text="Raw">
+             <MudTextField T="string" Value="@_content" Lines="20" ReadOnly="true" Variant="Variant.Outlined" />
+        </MudTabPanel>
+        <MudTabPanel Text="Attachments">
+            @if (_memory?.Attachments.Any() == true)
+            {
+                <MudList T="string">
+                    @foreach (var att in _memory.Attachments)
+                    {
+                        <MudListItem>
+                            <MudText>@att.Name</MudText>
+                            <MudText Typo="Typo.caption">@att.Path</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+            else
+            {
+                <MudText>No attachments.</MudText>
+            }
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    [Parameter] public MemoryId? MemoryId { get; set; }
+
+    private string? _content;
+    private Memory? _memory;
+    private bool _loading = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (MemoryId != null)
+        {
+            _loading = true;
+            _memory = await MemoryService.GetMemoryAsync(MemoryId);
+            _content = await MemoryService.GetContentAsync(MemoryId);
+            _loading = false;
+        }
+    }
+}

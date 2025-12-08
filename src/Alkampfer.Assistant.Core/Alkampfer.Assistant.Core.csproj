@@ -15,7 +15,14 @@
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="OpenAI" />
+    <PackageReference Include="SmartReader" />
+    <PackageReference Include="ReverseMarkdown" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Serilog.Extensions.Logging" />
   </ItemGroup>
 

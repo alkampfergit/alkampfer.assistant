@@ -1,4 +1,10 @@
+using Alkampfer.Assistant.Core;
+using Alkampfer.Assistant.Core.FileStore;
+using Alkampfer.Assistant.Core.LiteDbIntegration;
 using Alkampfer.Assistant.Host.Components;
+using Alkampfer.Assistant.Interfaces;
+using Alkampfer.Assistant.Interfaces.Bookmarks;
+using Alkampfer.Assistant.Interfaces.Memories;
 using MudBlazor;
 using MudBlazor.Services;
 using Alkampfer.Assistant.Host; // Add this for ConfigurationHelper
@@ -16,6 +22,21 @@ builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
 });
+
+builder.Services.AddHttpClient();
+
+// Feature: Bookmarks
+builder.Services.AddFileStore(builder.Configuration);
+builder.Services.AddBookmarkServices();
+
+// Persistence (LiteDB for now)
+var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "data", "assistant.db");
+Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+
+builder.Services.AddSingleton<IRepository<Bookmark, BookmarkId>>(sp => 
+    new LiteDbRepository<Bookmark, BookmarkId>(dbPath, "bookmarks"));
+builder.Services.AddSingleton<IRepository<Memory, MemoryId>>(sp => 
+    new LiteDbRepository<Memory, MemoryId>(dbPath, "memories"));
 
 var app = builder.Build();
 

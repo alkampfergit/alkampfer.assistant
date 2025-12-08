@@ -1,0 +1,52 @@
+@page "/bookmarks/{Id}/upload"
+@using Alkampfer.Assistant.Interfaces.Bookmarks
+@inject IBookmarkService BookmarkService
+@inject NavigationManager Navigation
+
+<PageTitle>Upload Content</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Upload Content</MudText>
+    
+    <MudText Class="mb-4">Upload content for bookmark: @_id</MudText>
+
+    <MudTabs>
+        <MudTabPanel Text="Paste Markdown">
+            <MudForm @ref="_form" @bind-IsValid="@_success">
+                <MudTextField T="string" Label="Content" @bind-Value="_content" Lines="20" Required="true" Variant="Variant.Outlined" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SaveAsync" Class="mt-4">Save</MudButton>
+            </MudForm>
+        </MudTabPanel>
+        <MudTabPanel Text="Upload Zip">
+            <MudText>Zip upload not implemented yet.</MudText>
+        </MudTabPanel>
+    </MudTabs>
+    
+    <MudButton Variant="Variant.Text" OnClick="Cancel" Class="mt-4">Cancel</MudButton>
+</MudContainer>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private string _id = string.Empty;
+    private MudForm _form = default!;
+    private bool _success;
+    private string _content = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _id = Uri.UnescapeDataString(Id);
+    }
+
+    private async Task SaveAsync()
+    {
+        var id = new BookmarkId(_id);
+        await BookmarkService.UploadContentAsync(id, _content);
+        Navigation.NavigateTo($"/bookmarks/{Id}");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo($"/bookmarks/{Id}");
+    }
+}

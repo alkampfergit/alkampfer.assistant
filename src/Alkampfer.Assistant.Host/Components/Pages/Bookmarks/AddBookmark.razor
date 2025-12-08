@@ -1,0 +1,39 @@
+@page "/bookmarks/add"
+@using Alkampfer.Assistant.Interfaces.Bookmarks
+@inject IBookmarkService BookmarkService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Bookmark</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Add Bookmark</MudText>
+
+    <MudForm @ref="_form" @bind-IsValid="@_success">
+        <MudTextField T="string" Label="URL" @bind-Value="_url" Required="true" RequiredError="URL is required!" />
+        <MudTextField T="string" Label="Title" @bind-Value="_title" />
+        <MudTextField T="string" Label="Tags (comma separated)" @bind-Value="_tagsInput" />
+        
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SaveAsync" Class="mt-4">Save</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel" Class="mt-4 ml-2">Cancel</MudButton>
+    </MudForm>
+</MudContainer>
+
+@code {
+    private MudForm _form = default!;
+    private bool _success;
+    private string _url = string.Empty;
+    private string _title = string.Empty;
+    private string _tagsInput = string.Empty;
+
+    private async Task SaveAsync()
+    {
+        var tags = _tagsInput.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        await BookmarkService.CreateBookmarkAsync(_url, _title, tags);
+        Navigation.NavigateTo("/bookmarks");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/bookmarks");
+    }
+}

@@ -27,10 +27,10 @@ Based on plan.md structure:
 
 **Purpose**: Project initialization, NuGet packages, and basic structure
 
-- [ ] T001 Add NuGet packages to `src/Directory.Packages.props`: SmartReader, ReverseMarkdown, Microsoft.Playwright, Azure.Storage.Blobs
-- [ ] T002 [P] Create `MemoryId` identity class in `src/Alkampfer.Assistant.Interfaces/Memories/MemoryId.cs`
-- [ ] T003 [P] Create `BookmarkId` identity class in `src/Alkampfer.Assistant.Interfaces/Bookmarks/BookmarkId.cs`
-- [ ] T004 [P] Create `IFileStore` interface in `src/Alkampfer.Assistant.Interfaces/IFileStore.cs`
+- [x] T001 Add NuGet packages to `src/Directory.Packages.props`: SmartReader, ReverseMarkdown, Microsoft.Playwright, Azure.Storage.Blobs
+- [x] T002 [P] Create `MemoryId` identity class in `src/Alkampfer.Assistant.Interfaces/Memories/MemoryId.cs`
+- [x] T003 [P] Create `BookmarkId` identity class in `src/Alkampfer.Assistant.Interfaces/Bookmarks/BookmarkId.cs`
+- [x] T004 [P] Create `IFileStore` interface in `src/Alkampfer.Assistant.Interfaces/IFileStore.cs`
 
 ---
 
@@ -42,23 +42,23 @@ Based on plan.md structure:
 
 ### Entity Models
 
-- [ ] T005 [P] Create `Memory` entity in `src/Alkampfer.Assistant.Interfaces/Memories/Memory.cs`
-- [ ] T006 [P] Create `Bookmark` entity in `src/Alkampfer.Assistant.Interfaces/Bookmarks/Bookmark.cs`
-- [ ] T007 [P] Create `BookmarkStatus` enum in `src/Alkampfer.Assistant.Interfaces/Bookmarks/BookmarkStatus.cs`
-- [ ] T008 [P] Create `Attachment` record in `src/Alkampfer.Assistant.Interfaces/Memories/Attachment.cs`
+- [x] T005 [P] Create `Memory` entity in `src/Alkampfer.Assistant.Interfaces/Memories/Memory.cs`
+- [x] T006 [P] Create `Bookmark` entity in `src/Alkampfer.Assistant.Interfaces/Bookmarks/Bookmark.cs`
+- [x] T007 [P] Create `BookmarkStatus` enum in `src/Alkampfer.Assistant.Interfaces/Bookmarks/BookmarkStatus.cs`
+- [x] T008 [P] Create `Attachment` record in `src/Alkampfer.Assistant.Interfaces/Memories/Attachment.cs`
 
 ### File Store Implementations
 
-- [ ] T009 Create `LocalFileStore` implementation in `src/Alkampfer.Assistant.Core/FileStore/LocalFileStore.cs`
-- [ ] T010 Create `AzureBlobFileStore` implementation in `src/Alkampfer.Assistant.Core/FileStore/AzureBlobFileStore.cs`
-- [ ] T011 Create `FileStoreConfiguration` and DI registration in `src/Alkampfer.Assistant.Core/FileStore/FileStoreExtensions.cs`
+- [x] T009 Create `LocalFileStore` implementation in `src/Alkampfer.Assistant.Core/FileStore/LocalFileStore.cs`
+- [x] T010 Create `AzureBlobFileStore` implementation in `src/Alkampfer.Assistant.Core/FileStore/AzureBlobFileStore.cs`
+- [x] T011 Create `FileStoreConfiguration` and DI registration in `src/Alkampfer.Assistant.Core/FileStore/FileStoreExtensions.cs`
 
 ### Unit Tests for Foundational Components
 
-- [ ] T012 [P] Create `LocalFileStoreTests` in `src/Alkampfer.Assistant.Tests/Core/FileStore/LocalFileStoreTests.cs`
-- [ ] T012b [P] Create `AzureBlobFileStoreTests` in `src/Alkampfer.Assistant.Tests/Core/FileStore/AzureBlobFileStoreTests.cs`
-- [ ] T013 [P] Create `MemoryTests` in `src/Alkampfer.Assistant.Tests/Core/Memories/MemoryTests.cs`
-- [ ] T014 [P] Create `BookmarkTests` in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/BookmarkTests.cs`
+- [x] T012 [P] Create `LocalFileStoreTests` in `src/Alkampfer.Assistant.Tests/Core/FileStore/LocalFileStoreTests.cs`
+- [x] T012b [P] Create `AzureBlobFileStoreTests` in `src/Alkampfer.Assistant.Tests/Core/FileStore/AzureBlobFileStoreTests.cs`
+- [x] T013 [P] Create `MemoryTests` in `src/Alkampfer.Assistant.Tests/Core/Memories/MemoryTests.cs`
+- [x] T014 [P] Create `BookmarkTests` in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/BookmarkTests.cs`
 
 **Checkpoint**: Foundation ready — entities, file store abstraction, and basic tests in place
 
@@ -74,43 +74,43 @@ Based on plan.md structure:
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T015 [P] [US1] Contract test for Bookmark CRUD in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/BookmarkRepositoryTests.cs`
-- [ ] T016 [P] [US1] Contract test for Memory CRUD in `src/Alkampfer.Assistant.Tests/Core/Memories/MemoryRepositoryTests.cs`
-- [ ] T017 [P] [US1] Unit test for `ContentExtractionService` in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/ContentExtractionServiceTests.cs`
-- [ ] T018 [US1] Integration test for bookmark download workflow in `src/Alkampfer.Assistant.Tests/Integration/BookmarkWorkflowTests.cs`
+- [x] T015 [P] [US1] Contract test for Bookmark CRUD in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/BookmarkRepositoryTests.cs`
+- [x] T016 [P] [US1] Contract test for Memory CRUD in `src/Alkampfer.Assistant.Tests/Core/Memories/MemoryRepositoryTests.cs`
+- [x] T017 [P] [US1] Unit test for `ContentExtractionService` in `src/Alkampfer.Assistant.Tests/Core/Bookmarks/ContentExtractionServiceTests.cs`
+- [x] T018 [US1] Integration test for bookmark download workflow in `src/Alkampfer.Assistant.Tests/Integration/BookmarkWorkflowTests.cs`
 
 ### Implementation for User Story 1
 
 #### Content Extraction Service
 
-- [ ] T019 [US1] Create `IContentExtractionService` interface in `src/Alkampfer.Assistant.Interfaces/Bookmarks/IContentExtractionService.cs`
-- [ ] T020 [US1] Implement `ContentExtractionService` with SmartReader + ReverseMarkdown in `src/Alkampfer.Assistant.Core/Bookmarks/ContentExtractionService.cs`
-- [ ] T021 [US1] Implement Playwright fallback in `ContentExtractionService` for JS-heavy pages
-- [ ] T022 [US1] Implement image downloading and Markdown link rewriting in `ContentExtractionService`
+- [x] T019 [US1] Create `IContentExtractionService` interface in `src/Alkampfer.Assistant.Interfaces/Bookmarks/IContentExtractionService.cs`
+- [x] T020 [US1] Implement `ContentExtractionService` with SmartReader + ReverseMarkdown in `src/Alkampfer.Assistant.Core/Bookmarks/ContentExtractionService.cs`
+- [x] T021 [US1] Implement Playwright fallback in `ContentExtractionService` for JS-heavy pages
+- [x] T022 [US1] Implement image downloading and Markdown link rewriting in `ContentExtractionService`
 
 #### Bookmark Service
 
-- [ ] T023 [US1] Create `IBookmarkService` interface in `src/Alkampfer.Assistant.Interfaces/Bookmarks/IBookmarkService.cs`
-- [ ] T024 [US1] Implement `BookmarkService` in `src/Alkampfer.Assistant.Core/Bookmarks/BookmarkService.cs`
-- [ ] T025 [US1] Implement `CreateBookmarkAsync` method (FR-001)
-- [ ] T026 [US1] Implement `GetBookmarkAsync`, `ListBookmarksAsync`, `UpdateBookmarkAsync`, `DeleteBookmarkAsync` methods (FR-001)
-- [ ] T027 [US1] Implement `DownloadContentAsync` method — orchestrates extraction → Memory creation → Bookmark update (FR-002, FR-003)
-- [ ] T028 [US1] Add error handling, retry support, and status updates for download failures (Edge Cases)
+- [x] T023 [US1] Create `IBookmarkService` interface in `src/Alkampfer.Assistant.Interfaces/Bookmarks/IBookmarkService.cs`
+- [x] T024 [US1] Implement `BookmarkService` in `src/Alkampfer.Assistant.Core/Bookmarks/BookmarkService.cs`
+- [x] T025 [US1] Implement `CreateBookmarkAsync` method (FR-001)
+- [x] T026 [US1] Implement `GetBookmarkAsync`, `ListBookmarksAsync`, `UpdateBookmarkAsync`, `DeleteBookmarkAsync` methods (FR-001)
+- [x] T027 [US1] Implement `DownloadContentAsync` method — orchestrates extraction → Memory creation → Bookmark update (FR-002, FR-003)
+- [x] T028 [US1] Add error handling, retry support, and status updates for download failures (Edge Cases)
 
 #### Manual Content Upload
 
-- [ ] T029 [US1] Implement `UploadContentAsync` method for manual Markdown paste/upload (FR-004)
+- [x] T029 [US1] Implement `UploadContentAsync` method for manual Markdown paste/upload (FR-004)
 - [ ] T030 [US1] Implement zip file handling (markdown + images) in `BookmarkService` (FR-004)
 
 #### Memory Service
 
-- [ ] T031 [US1] Create `IMemoryService` interface in `src/Alkampfer.Assistant.Interfaces/Memories/IMemoryService.cs`
-- [ ] T032 [US1] Implement `MemoryService` in `src/Alkampfer.Assistant.Core/Memories/MemoryService.cs`
-- [ ] T033 [US1] Implement `CreateMemoryAsync`, `GetMemoryAsync`, `GetContentAsync`, `DeleteMemoryAsync` methods
+- [x] T031 [US1] Create `IMemoryService` interface in `src/Alkampfer.Assistant.Interfaces/Memories/IMemoryService.cs`
+- [x] T032 [US1] Implement `MemoryService` in `src/Alkampfer.Assistant.Core/Memories/MemoryService.cs`
+- [x] T033 [US1] Implement `CreateMemoryAsync`, `GetMemoryAsync`, `GetContentAsync`, `DeleteMemoryAsync` methods
 
 #### DI Registration
 
-- [ ] T034 [US1] Register Bookmark and Memory services in `src/Alkampfer.Assistant.Core/ServiceCollectionExtensions.cs`
+- [x] T034 [US1] Register Bookmark and Memory services in `src/Alkampfer.Assistant.Core/ServiceCollectionExtensions.cs`
 
 **Checkpoint**: Core bookmark cataloging and memory extraction complete — can be tested via unit/integration tests
 
@@ -124,20 +124,20 @@ Based on plan.md structure:
 
 ### Blazor Components
 
-- [ ] T035 [P] [US1] Create `BookmarkList.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/BookmarkList.razor`
-- [ ] T036 [P] [US1] Create `BookmarkDetail.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/BookmarkDetail.razor`
-- [ ] T037 [P] [US1] Create `AddBookmark.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/AddBookmark.razor`
-- [ ] T038 [US1] Create `MemoryViewer.razor` component to display Markdown content in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/MemoryViewer.razor`
-- [ ] T039 [US1] Create `ManualContentUpload.razor` component for paste/upload in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/ManualContentUpload.razor`
+- [x] T035 [P] [US1] Create `BookmarkList.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/BookmarkList.razor`
+- [x] T036 [P] [US1] Create `BookmarkDetail.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/BookmarkDetail.razor`
+- [x] T037 [P] [US1] Create `AddBookmark.razor` component in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/AddBookmark.razor`
+- [x] T038 [US1] Create `MemoryViewer.razor` component to display Markdown content in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/MemoryViewer.razor`
+- [x] T039 [US1] Create `ManualContentUpload.razor` component for paste/upload in `src/Alkampfer.Assistant.Host/Components/Pages/Bookmarks/ManualContentUpload.razor`
 
 ### Navigation and Routing
 
-- [ ] T040 [US1] Add bookmarks navigation link to `NavMenu.razor` in `src/Alkampfer.Assistant.Host/Components/Layout/NavMenu.razor`
-- [ ] T041 [US1] Register services in `Program.cs` — call `AddBookmarkServices()` and `AddFileStore()` in `src/Alkampfer.Assistant.Host/Program.cs`
+- [x] T040 [US1] Add bookmarks navigation link to `NavMenu.razor` in `src/Alkampfer.Assistant.Host/Components/Layout/NavMenu.razor`
+- [x] T041 [US1] Register services in `Program.cs` — call `AddBookmarkServices()` and `AddFileStore()` in `src/Alkampfer.Assistant.Host/Program.cs`
 
 ### Configuration
 
-- [ ] T042 [US1] Add `FileStore` configuration section to `appsettings.json` and `appsettings.Development.json`
+- [x] T042 [US1] Add `FileStore` configuration section to `appsettings.json` and `appsettings.Development.json`
 
 **Checkpoint**: User Story 1 complete — users can manage bookmarks via Blazor UI
 
@@ -147,10 +147,10 @@ Based on plan.md structure:
 
 **Purpose**: Improvements that affect the entire feature
 
-- [ ] T043 [P] Add structured logging to `ContentExtractionService` and `BookmarkService`
-- [ ] T044 [P] Add XML documentation to public interfaces (`IFileStore`, `IBookmarkService`, `IMemoryService`)
+- [x] T043 [P] Add structured logging to `ContentExtractionService` and `BookmarkService`
+- [x] T044 [P] Add XML documentation to public interfaces (`IFileStore`, `IBookmarkService`, `IMemoryService`)
 - [ ] T045 Run `quickstart.md` validation — verify dev setup instructions work
-- [ ] T046 [P] Add README section for Bookmark Manager feature in `src/Alkampfer.Assistant.Host/README.md`
+- [x] T046 [P] Add README section for Bookmark Manager feature in `src/Alkampfer.Assistant.Host/README.md`
 - [ ] T047 Performance validation — verify download completes in <30 seconds (SC-001)
 
 ---

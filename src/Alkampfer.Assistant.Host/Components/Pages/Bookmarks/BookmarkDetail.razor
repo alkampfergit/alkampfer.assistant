@@ -1,0 +1,113 @@
+@page "/bookmarks/{Id}"
+@using Alkampfer.Assistant.Interfaces.Bookmarks
+@using Alkampfer.Assistant.Interfaces.Memories
+@inject IBookmarkService BookmarkService
+@inject IMemoryService MemoryService
+@inject NavigationManager Navigation
+
+<PageTitle>Bookmark Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (_bookmark == null)
+    {
+        <MudText>Loading...</MudText>
+    }
+    else
+    {
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudText Typo="Typo.h4">@_bookmark.Title</MudText>
+            <MudStack Row="true">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="DownloadAsync" Disabled="@(_bookmark.Status == BookmarkStatus.Downloaded)">Download Content</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Back">Back</MudButton>
+            </MudStack>
+        </MudStack>
+
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.h6">Metadata</MudText>
+                    <MudList T="string">
+                        <MudListItem>
+                            <MudText Typo="Typo.subtitle2">URL</MudText>
+                            <MudLink Href="@_bookmark.Url" Target="_blank">@_bookmark.Url</MudLink>
+                        </MudListItem>
+                        <MudListItem>
+                            <MudText Typo="Typo.subtitle2">Status</MudText>
+                            <MudText>@_bookmark.Status</MudText>
+                        </MudListItem>
+                        @if (!string.IsNullOrEmpty(_bookmark.LastError))
+                        {
+                            <MudListItem>
+                                <MudText Typo="Typo.subtitle2" Color="Color.Error">Error</MudText>
+                                <MudText Color="Color.Error">@_bookmark.LastError</MudText>
+                            </MudListItem>
+                        }
+                        <MudListItem>
+                            <MudText Typo="Typo.subtitle2">Tags</MudText>
+                            <div>
+                                @foreach (var tag in _bookmark.Tags)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">@tag</MudChip>
+                                }
+                            </div>
+                        </MudListItem>
+                    </MudList>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" md="8">
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.h6">Content</MudText>
+                    @if (_bookmark.MemoryId != null)
+                    {
+                        <MemoryViewer MemoryId="@_bookmark.MemoryId" />
+                    }
+                    else
+                    {
+                        <MudText>No content downloaded yet.</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private Bookmark? _bookmark;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Id might be encoded
+        var decodedId = Uri.UnescapeDataString(Id);
+        await LoadBookmarkAsync(decodedId);
+    }
+
+    private async Task LoadBookmarkAsync(string idStr)
+    {
+        try 
+        {
+            var id = new BookmarkId(idStr);
+            _bookmark = await BookmarkService.GetBookmarkAsync(id);
+        }
+        catch (Exception)
+        {
+            // Handle invalid ID
+            Navigation.NavigateTo("/bookmarks");
+        }
+    }
+
+    private async Task DownloadAsync()
+    {
+        if (_bookmark != null)
+        {
+            await BookmarkService.DownloadContentAsync(_bookmark.Id);
+            await LoadBookmarkAsync(_bookmark.Id.Value);
+        }
+    }
+
+    private void Back()
+    {
+        Navigation.NavigateTo("/bookmarks");
+    }
+}

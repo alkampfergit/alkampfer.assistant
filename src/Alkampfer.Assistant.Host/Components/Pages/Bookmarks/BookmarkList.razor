@@ -1,0 +1,97 @@
+@page "/bookmarks"
+@using Alkampfer.Assistant.Interfaces.Bookmarks
+@inject IBookmarkService BookmarkService
+@inject NavigationManager Navigation
+
+<PageTitle>Bookmarks</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h4">Bookmarks</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/bookmarks/add"))">Add Bookmark</MudButton>
+    </MudStack>
+
+    <MudTable Items="@_bookmarks" Hover="true" Loading="@_loading" OnRowClick="RowClickEvent">
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>URL</MudTh>
+            <MudTh>Tags</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Title">@context.Title</MudTd>
+            <MudTd DataLabel="URL">
+                <MudLink Href="@context.Url" Target="_blank">@context.Url</MudLink>
+            </MudTd>
+            <MudTd DataLabel="Tags">
+                @foreach (var tag in context.Tags)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="mr-1">@tag</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Status">
+                @if (context.Status == BookmarkStatus.Downloaded)
+                {
+                    <MudChip T="string" Color="Color.Success" Size="Size.Small">Downloaded</MudChip>
+                }
+                else if (context.Status == BookmarkStatus.Error)
+                {
+                    <MudChip T="string" Color="Color.Error" Size="Size.Small">Error</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Color="Color.Default" Size="Size.Small">New</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Primary" OnClick="@((e) => DownloadAsync(context))" Disabled="@(context.Status == BookmarkStatus.Downloaded)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@((e) => DeleteAsync(context))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private IEnumerable<Bookmark> _bookmarks = new List<Bookmark>();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookmarksAsync();
+    }
+
+    private async Task LoadBookmarksAsync()
+    {
+        _loading = true;
+        _bookmarks = await BookmarkService.ListBookmarksAsync();
+        _loading = false;
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<Bookmark> tableRowClickEventArgs)
+    {
+        // We need to encode the ID because it contains '/'
+        // But Identity.Value is "Bookmark/123".
+        // Blazor routing might have issues with slashes in parameters.
+        // We should probably use just the numeric ID or encode it.
+        // Or use query parameter.
+        // Let's try to use the full ID but we might need to handle it in the page.
+        // Actually, Identity.Value contains '/', so it will be treated as multiple segments.
+        // We can use catch-all parameter or encode.
+        // Let's use Uri.EscapeDataString.
+        Navigation.NavigateTo($"/bookmarks/{Uri.EscapeDataString(tableRowClickEventArgs.Item.Id.Value)}");
+    }
+
+    private async Task DownloadAsync(Bookmark bookmark)
+    {
+        // In a real app, show progress or toast
+        await BookmarkService.DownloadContentAsync(bookmark.Id);
+        await LoadBookmarksAsync();
+    }
+
+    private async Task DeleteAsync(Bookmark bookmark)
+    {
+        await BookmarkService.DeleteBookmarkAsync(bookmark.Id);
+        await LoadBookmarksAsync();
+    }
+}
