@@ -36,9 +36,9 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         return path;
     }
 
-    protected override IRepository<TestEntity> CreateRepository()
+    protected override IRepository<TestEntity, TestEntityId> CreateRepository()
     {
-        return new LiteDbRepository<TestEntity>($"Filename={CreateTempDbPath()}", "TestEntities");
+        return new LiteDbRepository<TestEntity, TestEntityId>($"Filename={CreateTempDbPath()}", "TestEntities");
     }
 
     [Fact]
@@ -48,23 +48,23 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         var dbPath = CreateTempDbPath();
         var connectionString = $"Filename={dbPath}";
         
-        var repository1 = new LiteDbRepository<TestEntity>(connectionString, "TestEntities");
-        var repository2 = new LiteDbRepository<TestEntity>(connectionString, "TestEntities");
+        var repository1 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "TestEntities");
+        var repository2 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "TestEntities");
 
         var entity = new TestEntity
         {
-            Id = "shared-entity",
+            Id = new TestEntityId(100),
             Name = "Shared Entity",
             Value = 42
         };
 
         // Act
         await repository1.SaveAsync(entity);
-        var loadedEntity = await repository2.LoadByIdAsync("shared-entity");
+        var loadedEntity = await repository2.LoadByIdAsync(new TestEntityId(100));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("shared-entity", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(100), loadedEntity.Id);
         Assert.Equal("Shared Entity", loadedEntity.Name);
         Assert.Equal(42, loadedEntity.Value);
     }
@@ -76,24 +76,24 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         var dbPath = CreateTempDbPath();
         var connectionString = $"Filename={dbPath}";
         
-        var repository1 = new LiteDbRepository<TestEntity>(connectionString, "Collection1");
-        var repository2 = new LiteDbRepository<TestEntity>(connectionString, "Collection2");
+        var repository1 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "Collection1");
+        var repository2 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "Collection2");
 
         var entity = new TestEntity
         {
-            Id = "isolated-entity",
+            Id = new TestEntityId(101),
             Name = "Isolated Entity",
             Value = 123
         };
 
         // Act
         await repository1.SaveAsync(entity);
-        var loadedFromSameCollection = await repository1.LoadByIdAsync("isolated-entity");
-        var loadedFromDifferentCollection = await repository2.LoadByIdAsync("isolated-entity");
+        var loadedFromSameCollection = await repository1.LoadByIdAsync(new TestEntityId(101));
+        var loadedFromDifferentCollection = await repository2.LoadByIdAsync(new TestEntityId(101));
 
         // Assert
         Assert.NotNull(loadedFromSameCollection);
-        Assert.Equal("isolated-entity", loadedFromSameCollection.Id);
+        Assert.Equal(new TestEntityId(101), loadedFromSameCollection.Id);
         
         Assert.Null(loadedFromDifferentCollection);
     }
@@ -106,18 +106,18 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         var largeString = new string('A', 10000); // 10KB string
         var entity = new TestEntity
         {
-            Id = "large-data-entity",
+            Id = new TestEntityId(102),
             Name = largeString,
             Value = int.MaxValue
         };
 
         // Act
         await repository.SaveAsync(entity);
-        var loadedEntity = await repository.LoadByIdAsync("large-data-entity");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(102));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("large-data-entity", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(102), loadedEntity.Id);
         Assert.Equal(largeString, loadedEntity.Name);
         Assert.Equal(int.MaxValue, loadedEntity.Value);
     }
@@ -135,7 +135,7 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         {
             var entity = new TestEntity
             {
-                Id = $"concurrent-entity-{i}",
+                Id = new TestEntityId(200 + i),
                 Name = $"Entity {i}",
                 Value = i
             };
@@ -146,9 +146,9 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         // Assert
         for (int i = 0; i < numberOfOperations; i++)
         {
-            var loadedEntity = await repository.LoadByIdAsync($"concurrent-entity-{i}");
+            var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(200 + i));
             Assert.NotNull(loadedEntity);
-            Assert.Equal($"concurrent-entity-{i}", loadedEntity.Id);
+            Assert.Equal(new TestEntityId(200 + i), loadedEntity.Id);
             Assert.Equal($"Entity {i}", loadedEntity.Name);
             Assert.Equal(i, loadedEntity.Value);
         }
@@ -161,18 +161,18 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         var repository = CreateRepository();
         var entity = new TestEntity
         {
-            Id = "unicode-entity",
+            Id = new TestEntityId(103),
             Name = "Unicode: 你好世界 🌍 العالم мир",
             Value = 42
         };
 
         // Act
         await repository.SaveAsync(entity);
-        var loadedEntity = await repository.LoadByIdAsync("unicode-entity");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(103));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("unicode-entity", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(103), loadedEntity.Id);
         Assert.Equal("Unicode: 你好世界 🌍 العالم мир", loadedEntity.Name);
         Assert.Equal(42, loadedEntity.Value);
     }
@@ -185,22 +185,22 @@ public class LiteDbRepositoryTests : RepositoryTestsBase, IDisposable
         var connectionString = $"Filename={dbPath}";
         var entity = new TestEntity
         {
-            Id = "persistent-entity",
+            Id = new TestEntityId(104),
             Name = "Persistent Entity",
             Value = 999
         };
 
         // Act - Save with first repository instance
-        var repository1 = new LiteDbRepository<TestEntity>(connectionString, "TestEntities");
+        var repository1 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "TestEntities");
         await repository1.SaveAsync(entity);
 
         // Create new repository instance with same connection string
-        var repository2 = new LiteDbRepository<TestEntity>(connectionString, "TestEntities");
-        var loadedEntity = await repository2.LoadByIdAsync("persistent-entity");
+        var repository2 = new LiteDbRepository<TestEntity, TestEntityId>(connectionString, "TestEntities");
+        var loadedEntity = await repository2.LoadByIdAsync(new TestEntityId(104));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("persistent-entity", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(104), loadedEntity.Id);
         Assert.Equal("Persistent Entity", loadedEntity.Name);
         Assert.Equal(999, loadedEntity.Value);
         

@@ -3,10 +3,13 @@ using System.Threading.Tasks;
 namespace Alkampfer.Assistant.Interfaces;
 
 /// <summary>
-/// Generic repository interface for data access operations on entities derived from BaseEntity.
+/// Repository interface for entities with strongly-typed identities.
 /// </summary>
-/// <typeparam name="T">The entity type that must inherit from BaseEntity</typeparam>
-public interface IRepository<T> where T : BaseEntity
+/// <typeparam name="T">The entity type.</typeparam>
+/// <typeparam name="TId">The identity type.</typeparam>
+public interface IRepository<T, TId> 
+    where T : BaseEntity<TId> 
+    where TId : Identity
 {
     /// <summary>
     /// Saves or updates an entity asynchronously.
@@ -22,7 +25,7 @@ public interface IRepository<T> where T : BaseEntity
     /// <param name="id">The unique identifier of the entity</param>
     /// <param name="cancellationToken">Optional cancellation token</param>
     /// <returns>The entity if found, null otherwise</returns>
-    Task<T> LoadByIdAsync(string id, CancellationToken cancellationToken = default);
+    Task<T> LoadByIdAsync(TId id, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Loads all entities from the repository asynchronously.
@@ -42,5 +45,5 @@ public interface IRepository<T> where T : BaseEntity
     /// <param name="id">The unique identifier of the entity to delete</param>
     /// <param name="cancellationToken">Optional cancellation token</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task DeleteAsync(string id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(TId id, CancellationToken cancellationToken = default);
 }

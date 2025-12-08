@@ -1,13 +1,14 @@
 <!--
 Sync Impact Report
 
-- Version change: none → 1.0.0
-- Modified principles: placeholders → defined
-- Added sections: Constraints & Tech Stack; Development Workflow
+- Version change: 1.0.0 → 1.0.1
+- Modified principles: none
+- Added sections: none
 - Removed sections: none
+- Clarifications: IFileStore abstraction explicitly named in Constraints & Tech Stack
 - Templates reviewed: .specify/templates/plan-template.md ✅, spec-template.md ✅,
-	tasks-template.md ✅, checklist-template.md ✅, agent-file-template.md ⚠ pending
-- Follow-up TODOs: none left as unresolved placeholders
+	tasks-template.md ✅, checklist-template.md ✅, agent-file-template.md ✅
+- Follow-up TODOs: none
 -->
 
 # Alkampfer.Assistant Constitution
@@ -52,7 +53,9 @@ features, PATCH for fixes and clarifications.
 - Nullability: nullable reference types enabled; prefer explicit nullability.
 - Async-first: public APIs SHOULD be async and accept `CancellationToken`.
 - External adapters (Azure OpenAI etc.) live under `Alkampfer.Assistant.Core/Llm`.
-- Saving big data (url content, files) is done in an abstraction over file system.
+- File and blob storage MUST use the `IFileStore` abstraction with pluggable backends
+  (local filesystem default, Azure Blob opt-in). Implementations live in
+  `Alkampfer.Assistant.Core/FileStore`.
 - Identities are managed by a specific interface and are in the form of prefix/sequence 
 
 ## User interface
@@ -88,4 +91,4 @@ features, PATCH for fixes and clarifications.
 	 affects. The CI pipeline SHOULD run an automated subset of checks (build + tests)
 	 and human reviewers MUST verify principle compliance for complex changes.
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-06 | **Last Amended**: 2025-12-06
+**Version**: 1.0.1 | **Ratified**: 2025-12-06 | **Last Amended**: 2025-12-08

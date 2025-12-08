@@ -9,7 +9,7 @@ namespace Alkampfer.Assistant.Tests.Core.DatabaseRelated;
 
 public abstract class RepositoryTestsBase
 {
-    protected abstract IRepository<TestEntity> CreateRepository();
+    protected abstract IRepository<TestEntity, TestEntityId> CreateRepository();
 
     [Fact]
     public async Task SaveAsync_WithValidEntity_ShouldSaveSuccessfully()
@@ -18,7 +18,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
         var entity = new TestEntity
         {
-            Id = "test-id-1",
+            Id = new TestEntityId(1),
             Name = "Test Entity",
             Value = 42
         };
@@ -27,9 +27,9 @@ public abstract class RepositoryTestsBase
         await repository.SaveAsync(entity);
 
         // Assert
-        var savedEntity = await repository.LoadByIdAsync("test-id-1");
+        var savedEntity = await repository.LoadByIdAsync(new TestEntityId(1));
         Assert.NotNull(savedEntity);
-        Assert.Equal("test-id-1", savedEntity.Id);
+        Assert.Equal(new TestEntityId(1), savedEntity.Id);
         Assert.Equal("Test Entity", savedEntity.Name);
         Assert.Equal(42, savedEntity.Value);
     }
@@ -40,11 +40,9 @@ public abstract class RepositoryTestsBase
         // Arrange
         var repository = CreateRepository();
         var entityWithNullId = new TestEntity { Id = null!, Name = "Test" };
-        var entityWithEmptyId = new TestEntity { Id = "", Name = "Test" };
 
         // Act & Assert
         await Assert.ThrowsAsync<Exception>(() => repository.SaveAsync(entityWithNullId));
-        await Assert.ThrowsAsync<Exception>(() => repository.SaveAsync(entityWithEmptyId));
     }
 
     [Fact]
@@ -52,7 +50,7 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity = new TestEntity { Id = "test-id", Name = "Test" };
+        var entity = new TestEntity { Id = new TestEntityId(100), Name = "Test" };
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -68,7 +66,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
         var entity = new TestEntity
         {
-            Id = "existing-id",
+            Id = new TestEntityId(2),
             Name = "Existing Entity",
             Value = 123
         };
@@ -76,11 +74,11 @@ public abstract class RepositoryTestsBase
         await repository.SaveAsync(entity);
 
         // Act
-        var loadedEntity = await repository.LoadByIdAsync("existing-id");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(2));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("existing-id", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(2), loadedEntity.Id);
         Assert.Equal("Existing Entity", loadedEntity.Name);
         Assert.Equal(123, loadedEntity.Value);
     }
@@ -92,7 +90,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
 
         // Act
-        var loadedEntity = await repository.LoadByIdAsync("non-existent-id");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(9999));
 
         // Assert
         Assert.Null(loadedEntity);
@@ -108,7 +106,7 @@ public abstract class RepositoryTestsBase
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => repository.LoadByIdAsync("test-id", cts.Token));
+            () => repository.LoadByIdAsync(new TestEntityId(101), cts.Token));
     }
 
     [Fact]
@@ -118,7 +116,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
         var originalEntity = new TestEntity
         {
-            Id = "update-test",
+            Id = new TestEntityId(3),
             Name = "Original Name",
             Value = 100
         };
@@ -127,7 +125,7 @@ public abstract class RepositoryTestsBase
 
         var updatedEntity = new TestEntity
         {
-            Id = "update-test",
+            Id = new TestEntityId(3),
             Name = "Updated Name",
             Value = 200
         };
@@ -136,9 +134,9 @@ public abstract class RepositoryTestsBase
         await repository.SaveAsync(updatedEntity);
 
         // Assert
-        var loadedEntity = await repository.LoadByIdAsync("update-test");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(3));
         Assert.NotNull(loadedEntity);
-        Assert.Equal("update-test", loadedEntity.Id);
+        Assert.Equal(new TestEntityId(3), loadedEntity.Id);
         Assert.Equal("Updated Name", loadedEntity.Name);
         Assert.Equal(200, loadedEntity.Value);
     }
@@ -148,9 +146,9 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "entity-1", Name = "First Entity", Value = 1 };
-        var entity2 = new TestEntity { Id = "entity-2", Name = "Second Entity", Value = 2 };
-        var entity3 = new TestEntity { Id = "entity-3", Name = "Third Entity", Value = 3 };
+        var entity1 = new TestEntity { Id = new TestEntityId(4), Name = "First Entity", Value = 1 };
+        var entity2 = new TestEntity { Id = new TestEntityId(5), Name = "Second Entity", Value = 2 };
+        var entity3 = new TestEntity { Id = new TestEntityId(6), Name = "Third Entity", Value = 3 };
 
         // Act
         await repository.SaveAsync(entity1);
@@ -158,9 +156,9 @@ public abstract class RepositoryTestsBase
         await repository.SaveAsync(entity3);
 
         // Assert
-        var loaded1 = await repository.LoadByIdAsync("entity-1");
-        var loaded2 = await repository.LoadByIdAsync("entity-2");
-        var loaded3 = await repository.LoadByIdAsync("entity-3");
+        var loaded1 = await repository.LoadByIdAsync(new TestEntityId(4));
+        var loaded2 = await repository.LoadByIdAsync(new TestEntityId(5));
+        var loaded3 = await repository.LoadByIdAsync(new TestEntityId(6));
 
         Assert.NotNull(loaded1);
         Assert.NotNull(loaded2);
@@ -176,25 +174,25 @@ public abstract class RepositoryTestsBase
     }
 
     [Fact]
-    public async Task Repository_WithSpecialCharactersInId_ShouldWorkCorrectly()
+    public async Task Repository_WithLargeNumericId_ShouldWorkCorrectly()
     {
         // Arrange
         var repository = CreateRepository();
         var entity = new TestEntity
         {
-            Id = "special-chars-!@#$%^&*()_+-=[]{}|;:,.<>?",
-            Name = "Special ID Entity",
+            Id = new TestEntityId(999999),
+            Name = "Large ID Entity",
             Value = 999
         };
 
         // Act
         await repository.SaveAsync(entity);
-        var loadedEntity = await repository.LoadByIdAsync("special-chars-!@#$%^&*()_+-=[]{}|;:,.<>?");
+        var loadedEntity = await repository.LoadByIdAsync(new TestEntityId(999999));
 
         // Assert
         Assert.NotNull(loadedEntity);
-        Assert.Equal("special-chars-!@#$%^&*()_+-=[]{}|;:,.<>?", loadedEntity.Id);
-        Assert.Equal("Special ID Entity", loadedEntity.Name);
+        Assert.Equal(new TestEntityId(999999), loadedEntity.Id);
+        Assert.Equal("Large ID Entity", loadedEntity.Name);
         Assert.Equal(999, loadedEntity.Value);
     }
 
@@ -205,7 +203,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
         var entity = new TestEntity
         {
-            Id = "delete-test",
+            Id = new TestEntityId(7),
             Name = "Entity to Delete",
             Value = 100
         };
@@ -213,14 +211,14 @@ public abstract class RepositoryTestsBase
         await repository.SaveAsync(entity);
         
         // Verify entity exists
-        var existingEntity = await repository.LoadByIdAsync("delete-test");
+        var existingEntity = await repository.LoadByIdAsync(new TestEntityId(7));
         Assert.NotNull(existingEntity);
 
         // Act
-        await repository.DeleteAsync("delete-test");
+        await repository.DeleteAsync(new TestEntityId(7));
 
         // Assert
-        var deletedEntity = await repository.LoadByIdAsync("delete-test");
+        var deletedEntity = await repository.LoadByIdAsync(new TestEntityId(7));
         Assert.Null(deletedEntity);
     }
 
@@ -231,7 +229,7 @@ public abstract class RepositoryTestsBase
         var repository = CreateRepository();
 
         // Act & Assert - Should not throw for non-existent entity
-        await repository.DeleteAsync("non-existent-id");
+        await repository.DeleteAsync(new TestEntityId(8888));
     }
 
     [Fact]
@@ -244,7 +242,7 @@ public abstract class RepositoryTestsBase
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => repository.DeleteAsync("test-id", cts.Token));
+            () => repository.DeleteAsync(new TestEntityId(102), cts.Token));
     }
 
     [Fact]
@@ -266,9 +264,9 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "query-1", Name = "First", Value = 10 };
-        var entity2 = new TestEntity { Id = "query-2", Name = "Second", Value = 20 };
-        var entity3 = new TestEntity { Id = "query-3", Name = "Third", Value = 30 };
+        var entity1 = new TestEntity { Id = new TestEntityId(10), Name = "First", Value = 10 };
+        var entity2 = new TestEntity { Id = new TestEntityId(11), Name = "Second", Value = 20 };
+        var entity3 = new TestEntity { Id = new TestEntityId(12), Name = "Third", Value = 30 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
@@ -282,9 +280,9 @@ public abstract class RepositoryTestsBase
         Assert.Equal(3, queryable.Count());
         
         var entities = queryable.ToList();
-        Assert.Contains(entities, e => e.Id == "query-1" && e.Name == "First" && e.Value == 10);
-        Assert.Contains(entities, e => e.Id == "query-2" && e.Name == "Second" && e.Value == 20);
-        Assert.Contains(entities, e => e.Id == "query-3" && e.Name == "Third" && e.Value == 30);
+        Assert.Contains(entities, e => e.Id.Equals(new TestEntityId(10)) && e.Name == "First" && e.Value == 10);
+        Assert.Contains(entities, e => e.Id.Equals(new TestEntityId(11)) && e.Name == "Second" && e.Value == 20);
+        Assert.Contains(entities, e => e.Id.Equals(new TestEntityId(12)) && e.Name == "Third" && e.Value == 30);
     }
 
     [Fact]
@@ -292,9 +290,9 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "filter-1", Name = "Apple", Value = 5 };
-        var entity2 = new TestEntity { Id = "filter-2", Name = "Banana", Value = 15 };
-        var entity3 = new TestEntity { Id = "filter-3", Name = "Cherry", Value = 25 };
+        var entity1 = new TestEntity { Id = new TestEntityId(13), Name = "Apple", Value = 5 };
+        var entity2 = new TestEntity { Id = new TestEntityId(14), Name = "Banana", Value = 15 };
+        var entity3 = new TestEntity { Id = new TestEntityId(15), Name = "Cherry", Value = 25 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
@@ -309,7 +307,7 @@ public abstract class RepositoryTestsBase
         // Act & Assert - Filter by Name
         var specificEntity = repository.AsQueryable.FirstOrDefault(e => e.Name == "Apple");
         Assert.NotNull(specificEntity);
-        Assert.Equal("filter-1", specificEntity.Id);
+        Assert.Equal(new TestEntityId(13), specificEntity.Id);
         Assert.Equal(5, specificEntity.Value);
     }
 
@@ -318,9 +316,9 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "order-1", Name = "Zebra", Value = 30 };
-        var entity2 = new TestEntity { Id = "order-2", Name = "Apple", Value = 10 };
-        var entity3 = new TestEntity { Id = "order-3", Name = "Banana", Value = 20 };
+        var entity1 = new TestEntity { Id = new TestEntityId(16), Name = "Zebra", Value = 30 };
+        var entity2 = new TestEntity { Id = new TestEntityId(17), Name = "Apple", Value = 10 };
+        var entity3 = new TestEntity { Id = new TestEntityId(18), Name = "Banana", Value = 20 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
@@ -346,8 +344,8 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "reflect-1", Name = "Keep", Value = 100 };
-        var entity2 = new TestEntity { Id = "reflect-2", Name = "Delete", Value = 200 };
+        var entity1 = new TestEntity { Id = new TestEntityId(19), Name = "Keep", Value = 100 };
+        var entity2 = new TestEntity { Id = new TestEntityId(20), Name = "Delete", Value = 200 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
@@ -356,14 +354,14 @@ public abstract class RepositoryTestsBase
         Assert.Equal(2, repository.AsQueryable.Count());
 
         // Act
-        await repository.DeleteAsync("reflect-2");
+        await repository.DeleteAsync(new TestEntityId(20));
 
         // Assert
         var queryable = repository.AsQueryable;
         Assert.Equal(1, queryable.Count());
         
         var remainingEntity = queryable.First();
-        Assert.Equal("reflect-1", remainingEntity.Id);
+        Assert.Equal(new TestEntityId(19), remainingEntity.Id);
         Assert.Equal("Keep", remainingEntity.Name);
     }
 
@@ -372,20 +370,21 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var originalEntity = new TestEntity { Id = "update-query", Name = "Original", Value = 100 };
+        var id = new TestEntityId(21);
+        var originalEntity = new TestEntity { Id = id, Name = "Original", Value = 100 };
         await repository.SaveAsync(originalEntity);
 
         // Verify original state
-        var beforeUpdate = repository.AsQueryable.First(e => e.Id == "update-query");
+        var beforeUpdate = repository.AsQueryable.First(e => e.Id.Equals(id));
         Assert.Equal("Original", beforeUpdate.Name);
         Assert.Equal(100, beforeUpdate.Value);
 
         // Act - Update entity
-        var updatedEntity = new TestEntity { Id = "update-query", Name = "Updated", Value = 200 };
+        var updatedEntity = new TestEntity { Id = id, Name = "Updated", Value = 200 };
         await repository.SaveAsync(updatedEntity);
 
         // Assert
-        var afterUpdate = repository.AsQueryable.First(e => e.Id == "update-query");
+        var afterUpdate = repository.AsQueryable.First(e => e.Id.Equals(id));
         Assert.Equal("Updated", afterUpdate.Name);
         Assert.Equal(200, afterUpdate.Value);
     }
@@ -471,7 +470,7 @@ public abstract class RepositoryTestsBase
     }
 }
 
-public class TestEntity : BaseEntity
+public class TestEntity : BaseEntity<TestEntityId>
 {
     public string Name { get; set; } = string.Empty;
     public int Value { get; set; }

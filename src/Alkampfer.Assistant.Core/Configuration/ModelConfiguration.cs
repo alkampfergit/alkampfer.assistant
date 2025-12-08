@@ -8,7 +8,7 @@ public class ModelConfiguration
     public required string ModelDescription { get; set; }
 }
 
-public class ModelDefinition : BaseEntity
+public class ModelDefinition : BaseEntity<ModelDefinitionId>
 {
     public required string Url { get; set; }
     public required string ApiKey { get; set; } // Secret

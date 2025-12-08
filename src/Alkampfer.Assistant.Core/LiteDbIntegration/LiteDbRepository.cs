@@ -5,22 +5,32 @@ using Alkampfer.Assistant.Interfaces;
 
 namespace Alkampfer.Assistant.Core.LiteDbIntegration;
 
-public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
+public class LiteDbRepository<T, TId> : IRepository<T, TId> 
+    where T : BaseEntity<TId> 
+    where TId : Identity
 {
     private readonly string _connectionString;
     private readonly string _collectionName;
+    private readonly BsonMapper _mapper;
 
     public LiteDbRepository(string connectionString, string collectionName)
     {
         _connectionString = connectionString;
         _collectionName = collectionName;
+        _mapper = new BsonMapper();
+        
+        // Register Identity serialization: persist as string, deserialize via constructor
+        _mapper.RegisterType<TId>(
+            serialize: id => id.Value,
+            deserialize: bson => (TId)Activator.CreateInstance(typeof(TId), bson.AsString)!
+        );
     }
 
     public IQueryable<T> AsQueryable
     {
         get
         {
-            using var db = new LiteDatabase(_connectionString);
+            using var db = new LiteDatabase(_connectionString, _mapper);
             var collection = db.GetCollection<T>(_collectionName);
 
             //really not production ready code. Consider if the 
@@ -32,8 +42,8 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
     public async Task SaveAsync(T entity, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (string.IsNullOrEmpty(entity.Id))
-            throw new Exception("Id property must not be null or empty");
+        if (entity.Id == null)
+            throw new Exception("Id property must not be null");
 
         using var db = new LiteDatabase(_connectionString);
         var collection = db.GetCollection<T>(_collectionName);
@@ -41,7 +51,7 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
         await Task.FromResult(0);
     }
 
-    public async Task<T> LoadByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<T> LoadByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         using var db = new LiteDatabase(_connectionString);
@@ -59,7 +69,7 @@ public class LiteDbRepository<T> : IRepository<T> where T : BaseEntity
         return await Task.FromResult(result);
     }
 
-    public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(TId id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         using var db = new LiteDatabase(_connectionString);
