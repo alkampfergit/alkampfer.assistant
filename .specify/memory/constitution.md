@@ -1,11 +1,11 @@
 <!--
 Sync Impact Report
 
-- Version change: 1.0.0 → 1.0.1
+- Version change: 1.0.1 → 1.0.2
 - Modified principles: none
 - Added sections: none
 - Removed sections: none
-- Clarifications: IFileStore abstraction explicitly named in Constraints & Tech Stack
+- Clarifications: Runtime updated to .NET 10
 - Templates reviewed: .specify/templates/plan-template.md ✅, spec-template.md ✅,
 	tasks-template.md ✅, checklist-template.md ✅, agent-file-template.md ✅
 - Follow-up TODOs: none
@@ -47,7 +47,7 @@ features, PATCH for fixes and clarifications.
 
 ## Constraints & Tech Stack
 
-- Runtime: .NET 9 (project targets in repository). All new code MUST target
+- Runtime: .NET 10 (project targets in repository). All new code MUST target
 	the repository's chosen SDK unless there is a justified exception.
 - Project conventions: central package versions via `Directory.Packages.props`.
 - Nullability: nullable reference types enabled; prefer explicit nullability.
@@ -91,4 +91,4 @@ features, PATCH for fixes and clarifications.
 	 affects. The CI pipeline SHOULD run an automated subset of checks (build + tests)
 	 and human reviewers MUST verify principle compliance for complex changes.
 
-**Version**: 1.0.1 | **Ratified**: 2025-12-06 | **Last Amended**: 2025-12-08
+**Version**: 1.0.2 | **Ratified**: 2025-12-06 | **Last Amended**: 2025-12-29
