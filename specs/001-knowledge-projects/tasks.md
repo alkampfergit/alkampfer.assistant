@@ -100,7 +100,7 @@ Based on plan.md structure:
 #### Manual Content Upload
 
 - [x] T029 [US1] Implement `UploadContentAsync` method for manual Markdown paste/upload (FR-004)
-- [ ] T030 [US1] Implement zip file handling (markdown + images) in `BookmarkService` (FR-004)
+- [x] T030 [US1] Implement zip file handling (markdown + images) in `BookmarkService` (FR-004)
 
 #### Memory Service
 
@@ -149,9 +149,9 @@ Based on plan.md structure:
 
 - [x] T043 [P] Add structured logging to `ContentExtractionService` and `BookmarkService`
 - [x] T044 [P] Add XML documentation to public interfaces (`IFileStore`, `IBookmarkService`, `IMemoryService`)
-- [ ] T045 Run `quickstart.md` validation — verify dev setup instructions work
+- [x] T045 Run `quickstart.md` validation — verify dev setup instructions work
 - [x] T046 [P] Add README section for Bookmark Manager feature in `src/Alkampfer.Assistant.Host/README.md`
-- [ ] T047 Performance validation — verify download completes in <30 seconds (SC-001)
+- [x] T047 Performance validation — verify download completes in <30 seconds (SC-001)
 
 ---
 

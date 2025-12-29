@@ -8,10 +8,9 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
         <MudText Typo="Typo.h4">Bookmarks</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/bookmarks/add"))">Add Bookmark</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => { Navigation.NavigateTo("/bookmarks/add"); return Task.CompletedTask; })">Add Bookmark</MudButton>
     </MudStack>
-
-    <MudTable Items="@_bookmarks" Hover="true" Loading="@_loading" OnRowClick="RowClickEvent">
+    <MudTable Items="@_bookmarks" Hover="true" Loading="@_loading" OnRowClick="@(EventCallback.Factory.Create<TableRowClickEventArgs<Bookmark>>(this, (TableRowClickEventArgs<Bookmark> args) => RowClickEvent(args)))">
         <HeaderContent>
             <MudTh>Title</MudTh>
             <MudTh>URL</MudTh>
@@ -25,7 +24,7 @@
                 <MudLink Href="@context.Url" Target="_blank">@context.Url</MudLink>
             </MudTd>
             <MudTd DataLabel="Tags">
-                @foreach (var tag in context.Tags)
+                @foreach (var tag in context.Tags ?? (IEnumerable<string>)Array.Empty<string>())
                 {
                     <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="mr-1">@tag</MudChip>
                 }
@@ -68,7 +67,7 @@
         _loading = false;
     }
 
-    private void RowClickEvent(TableRowClickEventArgs<Bookmark> tableRowClickEventArgs)
+    private Task RowClickEvent(TableRowClickEventArgs<Bookmark> tableRowClickEventArgs)
     {
         // We need to encode the ID because it contains '/'
         // But Identity.Value is "Bookmark/123".
@@ -79,7 +78,11 @@
         // Actually, Identity.Value contains '/', so it will be treated as multiple segments.
         // We can use catch-all parameter or encode.
         // Let's use Uri.EscapeDataString.
-        Navigation.NavigateTo($"/bookmarks/{Uri.EscapeDataString(tableRowClickEventArgs.Item.Id.Value)}");
+        var id = tableRowClickEventArgs?.Item?.Id?.Value;
+        if (string.IsNullOrEmpty(id))
+            return Task.CompletedTask;
+        Navigation.NavigateTo($"/bookmarks/{Uri.EscapeDataString(id)}");
+        return Task.CompletedTask;
     }
 
     private async Task DownloadAsync(Bookmark bookmark)

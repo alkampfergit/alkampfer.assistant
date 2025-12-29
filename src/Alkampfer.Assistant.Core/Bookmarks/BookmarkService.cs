@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +17,15 @@ public class BookmarkService : IBookmarkService
     private readonly IRepository<Bookmark, BookmarkId> _repository;
     private readonly IMemoryService _memoryService;
     private readonly IContentExtractionService _extractionService;
+    private readonly IFileStore _fileStore;
     private readonly ILogger<BookmarkService> _logger;
 
-    public BookmarkService(IRepository<Bookmark, BookmarkId> repository, IMemoryService memoryService, IContentExtractionService extractionService, ILogger<BookmarkService> logger)
+    public BookmarkService(IRepository<Bookmark, BookmarkId> repository, IMemoryService memoryService, IContentExtractionService extractionService, IFileStore fileStore, ILogger<BookmarkService> logger)
     {
         _repository = repository;
         _memoryService = memoryService;
         _extractionService = extractionService;
+        _fileStore = fileStore;
         _logger = logger;
     }
 
@@ -149,8 +152,86 @@ public class BookmarkService : IBookmarkService
         _logger.LogInformation("Manual content uploaded for bookmark {Id}. Memory ID: {MemoryId}", id, memory.Id);
     }
 
-    public Task UploadContentAsync(BookmarkId id, Stream zipStream, CancellationToken cancellationToken = default)
+    public async Task UploadContentAsync(BookmarkId id, Stream zipStream, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException("Zip upload not implemented yet");
+        _logger.LogInformation("Uploading zip content for bookmark {Id}", id);
+        var bookmark = await _repository.LoadByIdAsync(id, cancellationToken);
+        if (bookmark == null) 
+        {
+            _logger.LogWarning("Bookmark {Id} not found for zip upload", id);
+            throw new KeyNotFoundException($"Bookmark {id} not found");
+        }
+
+        try
+        {
+            using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: true);
+            
+            // Find the first markdown file
+            var markdownEntry = archive.Entries
+                .FirstOrDefault(e => e.FullName.EndsWith(".md", StringComparison.OrdinalIgnoreCase) 
+                                     && !e.FullName.Contains("__MACOSX"));
+            
+            if (markdownEntry == null)
+            {
+                _logger.LogWarning("No markdown file found in zip for bookmark {Id}", id);
+                throw new InvalidOperationException("Zip file must contain at least one .md file");
+            }
+            
+            // Extract markdown content
+            string markdownContent;
+            using (var markdownStream = markdownEntry.Open())
+            using (var reader = new StreamReader(markdownStream))
+            {
+                markdownContent = await reader.ReadToEndAsync();
+            }
+            
+            // Extract and save image files
+            var attachments = new List<Attachment>();
+            var imageExtensions = new[] { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg" };
+            
+            foreach (var entry in archive.Entries)
+            {
+                if (entry.FullName.Contains("__MACOSX") || string.IsNullOrEmpty(entry.Name))
+                    continue;
+                    
+                var extension = Path.GetExtension(entry.FullName).ToLowerInvariant();
+                if (imageExtensions.Contains(extension))
+                {
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var filePath = $"images/{fileName}";
+                    
+                    using var entryStream = entry.Open();
+                    using var memoryStream = new MemoryStream();
+                    await entryStream.CopyToAsync(memoryStream, cancellationToken);
+                    memoryStream.Position = 0;
+                    
+                    await _fileStore.SaveFileAsync(filePath, memoryStream, cancellationToken);
+                    
+                    attachments.Add(new Attachment(entry.Name, filePath));
+                    _logger.LogDebug("Saved image {FileName} from zip for bookmark {Id}", entry.Name, id);
+                }
+            }
+            
+            // Create memory with content and attachments
+            var memory = await _memoryService.CreateMemoryAsync(markdownContent, attachments, cancellationToken);
+            
+            bookmark.MemoryId = memory.Id;
+            bookmark.Status = BookmarkStatus.Downloaded;
+            bookmark.UpdatedAt = DateTime.UtcNow;
+            
+            await _repository.SaveAsync(bookmark, cancellationToken);
+            _logger.LogInformation("Zip content uploaded for bookmark {Id}. Memory ID: {MemoryId}, Attachments: {Count}", 
+                id, memory.Id, attachments.Count);
+        }
+        catch (InvalidDataException ex)
+        {
+            _logger.LogError(ex, "Invalid or corrupt zip file for bookmark {Id}", id);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to upload zip content for bookmark {Id}", id);
+            throw;
+        }
     }
 }

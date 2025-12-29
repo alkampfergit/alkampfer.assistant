@@ -42,7 +42,7 @@ public class BookmarkWorkflowTests : IDisposable
         var extractionService = new ContentExtractionService(httpClient, fileStore, NullLogger<ContentExtractionService>.Instance);
         
         _memoryService = new MemoryService(memoryRepo, fileStore, NullLogger<MemoryService>.Instance);
-        _bookmarkService = new BookmarkService(bookmarkRepo, _memoryService, extractionService, NullLogger<BookmarkService>.Instance);
+        _bookmarkService = new BookmarkService(bookmarkRepo, _memoryService, extractionService, fileStore, NullLogger<BookmarkService>.Instance);
     }
 
     public void Dispose()
