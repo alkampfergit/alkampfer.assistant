@@ -45,7 +45,7 @@ public class LiteDbRepository<T, TId> : IRepository<T, TId>
         if (entity.Id == null)
             throw new Exception("Id property must not be null");
 
-        using var db = new LiteDatabase(_connectionString);
+        using var db = new LiteDatabase(_connectionString, _mapper);
         var collection = db.GetCollection<T>(_collectionName);
         collection.Upsert(entity);
         await Task.FromResult(0);
@@ -54,16 +54,16 @@ public class LiteDbRepository<T, TId> : IRepository<T, TId>
     public async Task<T> LoadByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var db = new LiteDatabase(_connectionString);
+        using var db = new LiteDatabase(_connectionString, _mapper);
         var collection = db.GetCollection<T>(_collectionName);
-        var result = collection.FindById(id);
+        var result = collection.FindById(new BsonValue(id.Value));
         return await Task.FromResult(result);
     }
 
     public async Task<IEnumerable<T>> LoadAllAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var db = new LiteDatabase(_connectionString);
+        using var db = new LiteDatabase(_connectionString, _mapper);
         var collection = db.GetCollection<T>(_collectionName);
         var result = collection.FindAll().ToList();
         return await Task.FromResult(result);
@@ -72,9 +72,9 @@ public class LiteDbRepository<T, TId> : IRepository<T, TId>
     public async Task DeleteAsync(TId id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var db = new LiteDatabase(_connectionString);
+        using var db = new LiteDatabase(_connectionString, _mapper);
         var collection = db.GetCollection<T>(_collectionName);
-        collection.Delete(id);
+        collection.Delete(new BsonValue(id.Value));
         await Task.FromResult(0);
     }
 }

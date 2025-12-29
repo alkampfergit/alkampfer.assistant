@@ -408,9 +408,9 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "all-1", Name = "First Entity", Value = 10 };
-        var entity2 = new TestEntity { Id = "all-2", Name = "Second Entity", Value = 20 };
-        var entity3 = new TestEntity { Id = "all-3", Name = "Third Entity", Value = 30 };
+        var entity1 = new TestEntity { Id = new TestEntityId(1001), Name = "First Entity", Value = 10 };
+        var entity2 = new TestEntity { Id = new TestEntityId(1002), Name = "Second Entity", Value = 20 };
+        var entity3 = new TestEntity { Id = new TestEntityId(1003), Name = "Third Entity", Value = 30 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
@@ -424,9 +424,9 @@ public abstract class RepositoryTestsBase
         var entitiesList = entities.ToList();
         Assert.Equal(3, entitiesList.Count);
         
-        Assert.Contains(entitiesList, e => e.Id == "all-1" && e.Name == "First Entity" && e.Value == 10);
-        Assert.Contains(entitiesList, e => e.Id == "all-2" && e.Name == "Second Entity" && e.Value == 20);
-        Assert.Contains(entitiesList, e => e.Id == "all-3" && e.Name == "Third Entity" && e.Value == 30);
+        Assert.Contains(entitiesList, e => e.Id.Equals(new TestEntityId(1001)) && e.Name == "First Entity" && e.Value == 10);
+        Assert.Contains(entitiesList, e => e.Id.Equals(new TestEntityId(1002)) && e.Name == "Second Entity" && e.Value == 20);
+        Assert.Contains(entitiesList, e => e.Id.Equals(new TestEntityId(1003)) && e.Name == "Third Entity" && e.Value == 30);
     }
 
     [Fact]
@@ -434,16 +434,16 @@ public abstract class RepositoryTestsBase
     {
         // Arrange
         var repository = CreateRepository();
-        var entity1 = new TestEntity { Id = "delete-all-1", Name = "Keep This", Value = 100 };
-        var entity2 = new TestEntity { Id = "delete-all-2", Name = "Delete This", Value = 200 };
-        var entity3 = new TestEntity { Id = "delete-all-3", Name = "Keep This Too", Value = 300 };
+        var entity1 = new TestEntity { Id = new TestEntityId(2001), Name = "Keep This", Value = 100 };
+        var entity2 = new TestEntity { Id = new TestEntityId(2002), Name = "Delete This", Value = 200 };
+        var entity3 = new TestEntity { Id = new TestEntityId(2003), Name = "Keep This Too", Value = 300 };
 
         await repository.SaveAsync(entity1);
         await repository.SaveAsync(entity2);
         await repository.SaveAsync(entity3);
 
         // Act
-        await repository.DeleteAsync("delete-all-2");
+        await repository.DeleteAsync(new TestEntityId(2002));
         var entities = await repository.LoadAllAsync();
 
         // Assert
@@ -451,9 +451,9 @@ public abstract class RepositoryTestsBase
         var entitiesList = entities.ToList();
         Assert.Equal(2, entitiesList.Count);
         
-        Assert.Contains(entitiesList, e => e.Id == "delete-all-1");
-        Assert.Contains(entitiesList, e => e.Id == "delete-all-3");
-        Assert.DoesNotContain(entitiesList, e => e.Id == "delete-all-2");
+        Assert.Contains(entitiesList, e => e.Id.Equals(new TestEntityId(2001)));
+        Assert.Contains(entitiesList, e => e.Id.Equals(new TestEntityId(2003)));
+        Assert.DoesNotContain(entitiesList, e => e.Id.Equals(new TestEntityId(2002)));
     }
 
     [Fact]

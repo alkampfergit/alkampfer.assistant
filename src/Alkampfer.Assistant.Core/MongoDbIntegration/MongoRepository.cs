@@ -52,11 +52,6 @@ public class MongoRepository<T, TId> : IRepository<T, TId>
         return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<T>> LoadAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync(cancellationToken);
-    }
-
     public async Task DeleteAsync(TId id, CancellationToken cancellationToken = default)
     {
         var filter = Builders<T>.Filter.Eq(x => x.Id, id);
