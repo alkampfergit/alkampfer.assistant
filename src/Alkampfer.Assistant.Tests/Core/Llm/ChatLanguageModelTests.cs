@@ -44,11 +44,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithValidPrompt_ShouldReturnResponse()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            // Skip test if credentials are not available
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var prompt = "What is 2+2? Reply with only the number.";
@@ -69,10 +67,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithMultiplePrompts_ShouldBeStateless()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var firstPrompt = "My favorite color is blue.";
@@ -93,10 +90,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithNullPrompt_ShouldThrowArgumentException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -107,10 +103,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithEmptyPrompt_ShouldThrowArgumentException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -121,10 +116,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithWhitespacePrompt_ShouldThrowArgumentException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -136,10 +130,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithCancellationToken_ShouldSupportCancellation()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         using var cts = new CancellationTokenSource();
@@ -153,10 +146,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithComplexPrompt_ShouldHandleMultilineResponse()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var prompt = "List three primary colors. Reply with only the color names, one per line.";
@@ -181,10 +173,9 @@ public class ChatLanguageModelTests
     [Fact]
     public void Constructor_WithValidParameters_ShouldCreateInstance()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_ENDPOINT");
@@ -209,10 +200,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithLlmRequest_ShouldReturnResponse()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var request = new LlmRequest
@@ -236,10 +226,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithLlmRequest_WithPreviousConversationId_ShouldThrowNotSupportedException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var request = new LlmRequest
@@ -259,10 +248,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithLlmRequest_NullRequest_ShouldThrowArgumentNullException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -273,10 +261,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithLlmRequest_EmptyMessages_ShouldThrowArgumentException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var request = new LlmRequest
@@ -292,10 +279,9 @@ public class ChatLanguageModelTests
     [Fact]
     public async Task GenerateResponseAsync_WithLlmRequest_MultipleMessages_ShouldIncludeConversationHistory()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
         }
 
         var request = new LlmRequest

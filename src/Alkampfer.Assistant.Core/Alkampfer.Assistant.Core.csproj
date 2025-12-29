@@ -12,6 +12,7 @@
     <PackageReference Include="Fasterflect" />
     <PackageReference Include="LiteDB" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="Azure.AI.OpenAI" />

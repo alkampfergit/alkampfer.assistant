@@ -46,10 +46,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithSingleText_ShouldReturnSingleEmbedding()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "Hello, world!" };
@@ -68,10 +67,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithMultipleTexts_ShouldReturnMultipleEmbeddings()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "First text", "Second text", "Third text" };
@@ -90,10 +88,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_EmbeddingsShouldBeSameDimension()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "Short", "This is a longer text with more words" };
@@ -112,10 +109,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithDifferentTextTypes_ShouldSucceed()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "This is a document about embeddings" };
@@ -136,10 +132,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithEmptyCollection_ShouldThrowArgumentException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = Array.Empty<string>();
@@ -152,10 +147,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithNullCollection_ShouldThrowArgumentNullException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -166,10 +160,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_WithCancellationToken_ShouldSupportCancellation()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         using var cts = new CancellationTokenSource();
@@ -185,10 +178,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_SimilarTextsShouldHaveSimilarEmbeddings()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[]
@@ -216,10 +208,9 @@ public class EmbeddingModelTests
     [Fact]
     public void CountTokens_WithValidText_ShouldReturnPositiveCount()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "Hello, world!";
@@ -234,10 +225,9 @@ public class EmbeddingModelTests
     [Fact]
     public void CountTokens_WithEmptyString_ShouldReturnZero()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "";
@@ -252,10 +242,9 @@ public class EmbeddingModelTests
     [Fact]
     public void CountTokens_WithNullText_ShouldThrowArgumentNullException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -265,10 +254,9 @@ public class EmbeddingModelTests
     [Fact]
     public void CountTokens_LongerTextShouldHaveMoreTokens()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var shortText = "Hi";
@@ -285,10 +273,9 @@ public class EmbeddingModelTests
     [Fact]
     public void GetMaxStringLength_WithTextWithinLimit_ShouldReturnFullLength()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "Hello, world!";
@@ -305,10 +292,9 @@ public class EmbeddingModelTests
     [Fact]
     public void GetMaxStringLength_WithTextExceedingLimit_ShouldReturnTruncatedLength()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "This is a long text that will need to be truncated to fit within the token limit";
@@ -330,10 +316,9 @@ public class EmbeddingModelTests
     [Fact]
     public void GetMaxStringLength_WithZeroMaxTokens_ShouldThrowArgumentOutOfRangeException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "Test text";
@@ -346,10 +331,9 @@ public class EmbeddingModelTests
     [Fact]
     public void GetMaxStringLength_WithNegativeMaxTokens_ShouldThrowArgumentOutOfRangeException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var text = "Test text";
@@ -362,10 +346,9 @@ public class EmbeddingModelTests
     [Fact]
     public void GetMaxStringLength_WithNullText_ShouldThrowArgumentNullException()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         // Act & Assert
@@ -376,10 +359,9 @@ public class EmbeddingModelTests
     [Fact]
     public void Constructor_WithValidAzureParameters_ShouldCreateInstance()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_ENDPOINT");
@@ -404,10 +386,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task FirstEmbedding_WithSingleText_ShouldReturnSameAsFirstElement()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "Test text" };
@@ -422,10 +403,9 @@ public class EmbeddingModelTests
     [Fact]
     public async Task GenerateEmbeddingsAsync_OrderShouldMatchInputOrder()
     {
-        // Arrange
         if (!_canRunTests)
         {
-            return;
+            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
         }
 
         var texts = new[] { "First", "Second", "Third" };
