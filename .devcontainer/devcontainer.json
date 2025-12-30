@@ -5,9 +5,12 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"features": {
-		"ghcr.io/devcontainers/features/dotnet:2": {}
+		"ghcr.io/devcontainers/features/dotnet:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/sshd:1": {
+			"version": "latest"
+		}
 	},
-	
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -18,8 +21,10 @@
 			]
 		}
 	},
-	"containerEnv" : {
-		"TEST_MONGO_INSTANCE" : "mongodb://admin:testpw$d@mongodb:27017/test?authSource=admin"
+	"containerEnv": {
+		"TEST_MONGO_INSTANCE": "mongodb://mongodb/test",
+		"AZURE_MODEL" : "gpt-5-nano",
+		"AZURE_EMBEDDING_MODEL" : "text-embedding-3-small"
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

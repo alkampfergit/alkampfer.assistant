@@ -13,15 +13,13 @@ services:
       - app-network
 
   mongodb:
-    image: mongo:8
+    image: mongo:6.0
+    container_name: devcontainer_mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - 27017:27017
     volumes:
       - "mongodb_:/data/db"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: testpw$d
     networks:
       - app-network
 
