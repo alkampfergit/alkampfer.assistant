@@ -154,6 +154,21 @@ public class VectorRecordTests
     }
 
     [Fact]
+    public void WithMetadata_Bool_ShouldAddMetadataAndReturnSameInstance()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+
+        // Act
+        var result = record.WithMetadata("isActive", true);
+
+        // Assert
+        Assert.Same(record, result);
+        Assert.Single(record.Metadata);
+        Assert.Equal(true, record.Metadata["isActive"].AsBool());
+    }
+
+    [Fact]
     public void WithMetadata_DateTime_ShouldAddMetadataAndReturnSameInstance()
     {
         // Arrange
@@ -180,13 +195,15 @@ public class VectorRecordTests
         record.WithMetadata("title", "Document Title")
               .WithMetadata("pageCount", 42)
               .WithMetadata("relevance", 0.95)
+              .WithMetadata("isActive", true)
               .WithMetadata("createdAt", dateTime);
 
         // Assert
-        Assert.Equal(4, record.Metadata.Count);
+        Assert.Equal(5, record.Metadata.Count);
         Assert.Equal("Document Title", record.Metadata["title"].AsString());
         Assert.Equal(42, record.Metadata["pageCount"].AsInt());
         Assert.Equal(0.95, record.Metadata["relevance"].AsDouble());
+        Assert.Equal(true, record.Metadata["isActive"].AsBool());
         Assert.Equal(dateTime, record.Metadata["createdAt"].AsDateTime());
     }
 
@@ -200,6 +217,7 @@ public class VectorRecordTests
         Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, "value"));
         Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, 42));
         Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, 3.14));
+        Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, true));
         Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, DateTime.UtcNow));
     }
 
@@ -451,6 +469,47 @@ public class VectorRecordTests
     }
 
     [Fact]
+    public void GetMetadataAsBool_WithExistingBoolKey_ShouldReturnBool()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        record.WithMetadata("isActive", true);
+
+        // Act
+        var result = record.GetMetadataAsBool("isActive");
+
+        // Assert
+        Assert.Equal(true, result);
+    }
+
+    [Fact]
+    public void GetMetadataAsBool_WithWrongType_ShouldReturnNull()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        record.WithMetadata("title", "Document Title");
+
+        // Act
+        var result = record.GetMetadataAsBool("title");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetMetadataAsBool_WithNonExistingKey_ShouldReturnNull()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+
+        // Act
+        var result = record.GetMetadataAsBool("nonexistent");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void FluentInterface_CompleteExample_ShouldWorkCorrectly()
     {
         // Arrange
@@ -465,13 +524,14 @@ public class VectorRecordTests
             .WithMetadata("chunkIndex", 0)
             .WithMetadata("content", "This is the text content")
             .WithMetadata("relevance", 0.95)
+            .WithMetadata("isActive", true)
             .WithMetadata("createdAt", dateTime);
 
         // Assert
         Assert.Equal("chunk-123", record.Id);
         Assert.Equal("doc-456", record.DocumentId);
         Assert.Equal(2, record.Vectors.Count);
-        Assert.Equal(4, record.Metadata.Count);
+        Assert.Equal(5, record.Metadata.Count);
 
         Assert.Equal(textVector, record.GetVector("text"));
         Assert.Equal(titleVector, record.GetVector("title"));
@@ -479,6 +539,7 @@ public class VectorRecordTests
         Assert.Equal(0, record.GetMetadataAsInt("chunkIndex"));
         Assert.Equal("This is the text content", record.GetMetadataAsString("content"));
         Assert.Equal(0.95, record.GetMetadataAsDouble("relevance"));
+        Assert.Equal(true, record.GetMetadataAsBool("isActive"));
         Assert.Equal(dateTime, record.GetMetadataAsDateTime("createdAt"));
     }
 }

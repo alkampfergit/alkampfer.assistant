@@ -84,6 +84,16 @@ public class VectorSearchResult
     }
 
     /// <summary>
+    /// Retrieves metadata as a bool.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <returns>The bool value if found and of correct type, otherwise null.</returns>
+    public bool? GetMetadataAsBool(string key)
+    {
+        return GetMetadata(key)?.AsBool();
+    }
+
+    /// <summary>
     /// Retrieves metadata as a DateTime.
     /// </summary>
     /// <param name="key">The metadata key.</param>

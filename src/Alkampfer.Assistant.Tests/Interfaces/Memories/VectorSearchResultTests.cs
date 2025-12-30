@@ -283,6 +283,54 @@ public class VectorSearchResultTests
     }
 
     [Fact]
+    public void GetMetadataAsBool_WithExistingBoolKey_ShouldReturnBool()
+    {
+        // Arrange
+        var metadata = new Dictionary<string, MetadataValue>
+        {
+            { "isActive", true }
+        };
+        var result = new VectorSearchResult("id-123", "doc-456", 0.95, metadata);
+
+        // Act
+        var value = result.GetMetadataAsBool("isActive");
+
+        // Assert
+        Assert.Equal(true, value);
+    }
+
+    [Fact]
+    public void GetMetadataAsBool_WithWrongType_ShouldReturnNull()
+    {
+        // Arrange
+        var metadata = new Dictionary<string, MetadataValue>
+        {
+            { "title", "Document Title" }
+        };
+        var result = new VectorSearchResult("id-123", "doc-456", 0.95, metadata);
+
+        // Act
+        var value = result.GetMetadataAsBool("title");
+
+        // Assert
+        Assert.Null(value);
+    }
+
+    [Fact]
+    public void GetMetadataAsBool_WithNonExistingKey_ShouldReturnNull()
+    {
+        // Arrange
+        var metadata = new Dictionary<string, MetadataValue>();
+        var result = new VectorSearchResult("id-123", "doc-456", 0.95, metadata);
+
+        // Act
+        var value = result.GetMetadataAsBool("nonexistent");
+
+        // Assert
+        Assert.Null(value);
+    }
+
+    [Fact]
     public void CompleteExample_WithAllMetadataTypes_ShouldWorkCorrectly()
     {
         // Arrange
@@ -292,6 +340,7 @@ public class VectorSearchResultTests
             { "title", "Document Title" },
             { "chunkIndex", 0 },
             { "relevance", 0.95 },
+            { "isActive", true },
             { "createdAt", dateTime }
         };
 
@@ -302,11 +351,12 @@ public class VectorSearchResultTests
         Assert.Equal("chunk-123", result.Id);
         Assert.Equal("doc-456", result.DocumentId);
         Assert.Equal(0.87, result.Score);
-        Assert.Equal(4, result.Metadata.Count);
+        Assert.Equal(5, result.Metadata.Count);
 
         Assert.Equal("Document Title", result.GetMetadataAsString("title"));
         Assert.Equal(0, result.GetMetadataAsInt("chunkIndex"));
         Assert.Equal(0.95, result.GetMetadataAsDouble("relevance"));
+        Assert.Equal(true, result.GetMetadataAsBool("isActive"));
         Assert.Equal(dateTime, result.GetMetadataAsDateTime("createdAt"));
     }
 

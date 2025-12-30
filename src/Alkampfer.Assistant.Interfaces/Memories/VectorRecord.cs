@@ -107,6 +107,20 @@ public class VectorRecord
     }
 
     /// <summary>
+    /// Adds or updates boolean metadata.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="value">The boolean value.</param>
+    /// <returns>This instance for fluent chaining.</returns>
+    public VectorRecord WithMetadata(string key, bool value)
+    {
+        if (key == null) throw new ArgumentNullException(nameof(key));
+
+        _metadata[key] = value;
+        return this;
+    }
+
+    /// <summary>
     /// Adds or updates DateTime metadata.
     /// </summary>
     /// <param name="key">The metadata key.</param>
@@ -168,6 +182,16 @@ public class VectorRecord
     public double? GetMetadataAsDouble(string key)
     {
         return GetMetadata(key)?.AsDouble();
+    }
+
+    /// <summary>
+    /// Retrieves metadata as a bool.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <returns>The bool value if found and of correct type, otherwise null.</returns>
+    public bool? GetMetadataAsBool(string key)
+    {
+        return GetMetadata(key)?.AsBool();
     }
 
     /// <summary>

@@ -49,6 +49,29 @@ public class MetadataValueTests
     }
 
     [Fact]
+    public void ImplicitConversion_FromBool_ShouldCreateBoolMetadataValue()
+    {
+        // Arrange & Act
+        MetadataValue valueTrue = true;
+        MetadataValue valueFalse = false;
+
+        // Assert
+        Assert.NotNull(valueTrue);
+        Assert.Equal(true, valueTrue.AsBool());
+        Assert.Null(valueTrue.AsString());
+        Assert.Null(valueTrue.AsInt());
+        Assert.Null(valueTrue.AsDouble());
+        Assert.Null(valueTrue.AsDateTime());
+
+        Assert.NotNull(valueFalse);
+        Assert.Equal(false, valueFalse.AsBool());
+        Assert.Null(valueFalse.AsString());
+        Assert.Null(valueFalse.AsInt());
+        Assert.Null(valueFalse.AsDouble());
+        Assert.Null(valueFalse.AsDateTime());
+    }
+
+    [Fact]
     public void ImplicitConversion_FromDateTime_ShouldCreateDateTimeMetadataValue()
     {
         // Arrange
@@ -63,6 +86,7 @@ public class MetadataValueTests
         Assert.Null(value.AsString());
         Assert.Null(value.AsInt());
         Assert.Null(value.AsDouble());
+        Assert.Null(value.AsBool());
     }
 
     [Fact]
@@ -71,11 +95,13 @@ public class MetadataValueTests
         // Arrange
         MetadataValue intValue = 42;
         MetadataValue doubleValue = 3.14;
+        MetadataValue boolValue = true;
         MetadataValue dateTimeValue = DateTime.UtcNow;
 
         // Act & Assert
         Assert.Null(intValue.AsString());
         Assert.Null(doubleValue.AsString());
+        Assert.Null(boolValue.AsString());
         Assert.Null(dateTimeValue.AsString());
     }
 
@@ -85,11 +111,13 @@ public class MetadataValueTests
         // Arrange
         MetadataValue stringValue = "test";
         MetadataValue doubleValue = 3.14;
+        MetadataValue boolValue = true;
         MetadataValue dateTimeValue = DateTime.UtcNow;
 
         // Act & Assert
         Assert.Null(stringValue.AsInt());
         Assert.Null(doubleValue.AsInt());
+        Assert.Null(boolValue.AsInt());
         Assert.Null(dateTimeValue.AsInt());
     }
 
@@ -99,12 +127,30 @@ public class MetadataValueTests
         // Arrange
         MetadataValue stringValue = "test";
         MetadataValue intValue = 42;
+        MetadataValue boolValue = true;
         MetadataValue dateTimeValue = DateTime.UtcNow;
 
         // Act & Assert
         Assert.Null(stringValue.AsDouble());
         Assert.Null(intValue.AsDouble());
+        Assert.Null(boolValue.AsDouble());
         Assert.Null(dateTimeValue.AsDouble());
+    }
+
+    [Fact]
+    public void AsBool_WhenNotBoolType_ShouldReturnNull()
+    {
+        // Arrange
+        MetadataValue stringValue = "test";
+        MetadataValue intValue = 42;
+        MetadataValue doubleValue = 3.14;
+        MetadataValue dateTimeValue = DateTime.UtcNow;
+
+        // Act & Assert
+        Assert.Null(stringValue.AsBool());
+        Assert.Null(intValue.AsBool());
+        Assert.Null(doubleValue.AsBool());
+        Assert.Null(dateTimeValue.AsBool());
     }
 
     [Fact]
@@ -114,11 +160,13 @@ public class MetadataValueTests
         MetadataValue stringValue = "test";
         MetadataValue intValue = 42;
         MetadataValue doubleValue = 3.14;
+        MetadataValue boolValue = true;
 
         // Act & Assert
         Assert.Null(stringValue.AsDateTime());
         Assert.Null(intValue.AsDateTime());
         Assert.Null(doubleValue.AsDateTime());
+        Assert.Null(boolValue.AsDateTime());
     }
 
     [Fact]
@@ -128,6 +176,7 @@ public class MetadataValueTests
         MetadataValue stringValue = "test";
         MetadataValue intValue = 42;
         MetadataValue doubleValue = 3.14;
+        MetadataValue boolValue = true;
         var dateTime = DateTime.UtcNow;
         MetadataValue dateTimeValue = dateTime;
 
@@ -135,6 +184,7 @@ public class MetadataValueTests
         Assert.Equal("test", stringValue.Value);
         Assert.Equal(42, intValue.Value);
         Assert.Equal(3.14, doubleValue.Value);
+        Assert.Equal(true, boolValue.Value);
         Assert.Equal(dateTime, dateTimeValue.Value);
     }
 }

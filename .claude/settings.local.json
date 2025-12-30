@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(find:*)",
+      "Bash(git -C /Users/gianmariaricci/develop/github/alkampfer.assistant log --oneline -20)",
+      "Bash(git -C /Users/gianmariaricci/develop/github/alkampfer.assistant diff master...feature/rag_vector --name-only)"
     ],
     "deny": [],
     "ask": []
