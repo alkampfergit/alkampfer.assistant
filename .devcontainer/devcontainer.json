@@ -7,11 +7,14 @@
 	"features": {
 		"ghcr.io/devcontainers/features/dotnet:2": {}
 	},
+	"envFile": "${containerWorkspaceFolder}/.devcontainer/devcontainer.env",
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-dotnettools.csdevkit",
-				"ms-dotnettools.csharp"
+				"ms-dotnettools.csharp",
+				"mongodb.mongodb-vscode",
+				"cweijan.vscode-database-client2"
 			]
 		}
 	}
