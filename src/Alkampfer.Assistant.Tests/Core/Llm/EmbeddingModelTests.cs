@@ -19,6 +19,7 @@ public class EmbeddingModelTests
 {
     private readonly OpenAiEmbeddingModel? _sut;
     private readonly bool _canRunTests;
+    private readonly string _missingVarsMessage;
 
     public EmbeddingModelTests()
     {
@@ -29,17 +30,23 @@ public class EmbeddingModelTests
         var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         var model = Environment.GetEnvironmentVariable("AZURE_EMBEDDING_MODEL");
 
+        var missingVars = new List<string>();
+        if (string.IsNullOrWhiteSpace(azureEndpoint)) missingVars.Add("AZURE_ENDPOINT");
+        if (string.IsNullOrWhiteSpace(apiKey)) missingVars.Add("OPENAI_API_KEY");
+        if (string.IsNullOrWhiteSpace(model)) missingVars.Add("AZURE_EMBEDDING_MODEL");
+
         // Only create the model if all required variables are present
-        if (!string.IsNullOrWhiteSpace(azureEndpoint) &&
-            !string.IsNullOrWhiteSpace(apiKey) &&
-            !string.IsNullOrWhiteSpace(model))
+        if (missingVars.Count == 0)
         {
-            _sut = new OpenAiEmbeddingModel(azureEndpoint, apiKey, model);
+            // At this point, all variables are confirmed non-null and non-whitespace
+            _sut = new OpenAiEmbeddingModel(azureEndpoint ?? throw new InvalidOperationException(), apiKey ?? throw new InvalidOperationException(), model ?? throw new InvalidOperationException());
             _canRunTests = true;
+            _missingVarsMessage = string.Empty;
         }
         else
         {
             _canRunTests = false;
+            _missingVarsMessage = $"Required environment variables ({string.Join(", ", missingVars)}) are not set for LLM integration tests";
         }
     }
 
@@ -48,7 +55,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "Hello, world!" };
@@ -69,7 +76,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "First text", "Second text", "Third text" };
@@ -90,7 +97,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "Short", "This is a longer text with more words" };
@@ -111,7 +118,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "This is a document about embeddings" };
@@ -134,7 +141,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = Array.Empty<string>();
@@ -149,7 +156,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -162,7 +169,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         using var cts = new CancellationTokenSource();
@@ -180,7 +187,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[]
@@ -210,7 +217,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "Hello, world!";
@@ -227,7 +234,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "";
@@ -244,7 +251,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -256,7 +263,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var shortText = "Hi";
@@ -275,7 +282,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "Hello, world!";
@@ -294,7 +301,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "This is a long text that will need to be truncated to fit within the token limit";
@@ -318,7 +325,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "Test text";
@@ -333,7 +340,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var text = "Test text";
@@ -348,7 +355,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -361,7 +368,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_ENDPOINT");
@@ -388,7 +395,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "Test text" };
@@ -405,7 +412,7 @@ public class EmbeddingModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_EMBEDDING_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var texts = new[] { "First", "Second", "Third" };

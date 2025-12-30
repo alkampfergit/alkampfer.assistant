@@ -17,6 +17,7 @@ public class ChatLanguageModelTests
 {
     private readonly AzureOpenAiChatLanguageModel? _sut;
     private readonly bool _canRunTests;
+    private readonly string _missingVarsMessage;
 
     public ChatLanguageModelTests()
     {
@@ -27,17 +28,23 @@ public class ChatLanguageModelTests
         var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         var model = Environment.GetEnvironmentVariable("AZURE_MODEL");
 
+        var missingVars = new List<string>();
+        if (string.IsNullOrWhiteSpace(azureEndpoint)) missingVars.Add("AZURE_ENDPOINT");
+        if (string.IsNullOrWhiteSpace(apiKey)) missingVars.Add("OPENAI_API_KEY");
+        if (string.IsNullOrWhiteSpace(model)) missingVars.Add("AZURE_MODEL");
+
         // Only create the model if all required variables are present
-        if (!string.IsNullOrWhiteSpace(azureEndpoint) &&
-            !string.IsNullOrWhiteSpace(apiKey) &&
-            !string.IsNullOrWhiteSpace(model))
+        if (missingVars.Count == 0)
         {
-            _sut = new AzureOpenAiChatLanguageModel(azureEndpoint, apiKey, model);
+            // At this point, all variables are confirmed non-null and non-whitespace
+            _sut = new AzureOpenAiChatLanguageModel(azureEndpoint ?? throw new InvalidOperationException(), apiKey ?? throw new InvalidOperationException(), model ?? throw new InvalidOperationException());
             _canRunTests = true;
+            _missingVarsMessage = string.Empty;
         }
         else
         {
             _canRunTests = false;
+            _missingVarsMessage = $"Required environment variables ({string.Join(", ", missingVars)}) are not set for LLM integration tests";
         }
     }
 
@@ -46,7 +53,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var prompt = "What is 2+2? Reply with only the number.";
@@ -69,7 +76,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var firstPrompt = "My favorite color is blue.";
@@ -92,7 +99,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -105,7 +112,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -118,7 +125,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -132,7 +139,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         using var cts = new CancellationTokenSource();
@@ -148,7 +155,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var prompt = "List three primary colors. Reply with only the color names, one per line.";
@@ -175,7 +182,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_ENDPOINT");
@@ -202,7 +209,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var request = new LlmRequest
@@ -228,7 +235,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var request = new LlmRequest
@@ -250,7 +257,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         // Act & Assert
@@ -263,7 +270,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var request = new LlmRequest
@@ -281,7 +288,7 @@ public class ChatLanguageModelTests
     {
         if (!_canRunTests)
         {
-            Assert.Fail("Required environment variables (AZURE_ENDPOINT, OPENAI_API_KEY, AZURE_MODEL) are not set for LLM integration tests");
+            Assert.Fail(_missingVarsMessage);
         }
 
         var request = new LlmRequest

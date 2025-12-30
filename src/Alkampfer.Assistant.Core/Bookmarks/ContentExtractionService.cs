@@ -89,44 +89,47 @@ public class ContentExtractionService : IContentExtractionService
         
         try 
         {
-            var parser = new AngleSharp.Html.Parser.HtmlParser();
-            var document = await parser.ParseDocumentAsync(contentHtml);
-            var images = document.QuerySelectorAll("img");
-            _logger.LogDebug("Found {Count} images in content for {Url}", images.Length, url);
-            
-            foreach (var img in images)
+            if (!string.IsNullOrEmpty(contentHtml))
             {
-                var src = img.GetAttribute("src");
-                if (string.IsNullOrEmpty(src)) continue;
+                var parser = new AngleSharp.Html.Parser.HtmlParser();
+                var document = await parser.ParseDocumentAsync(contentHtml);
+                var images = document.QuerySelectorAll("img");
+                _logger.LogDebug("Found {Count} images in content for {Url}", images.Length, url);
                 
-                if (!Uri.TryCreate(new Uri(url), src, out var imgUri)) continue;
-                
-                try 
+                foreach (var img in images)
                 {
-                    var imgBytes = await _httpClient.GetByteArrayAsync(imgUri, cancellationToken);
-                    var extension = Path.GetExtension(imgUri.AbsolutePath);
-                    if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+                    var src = img.GetAttribute("src");
+                    if (string.IsNullOrEmpty(src)) continue;
                     
-                    var fileName = $"{Guid.NewGuid()}{extension}";
-                    var filePath = $"images/{fileName}";
+                    if (!Uri.TryCreate(new Uri(url), src, out var imgUri)) continue;
                     
-                    using var stream = new MemoryStream(imgBytes);
-                    await _fileStore.SaveFileAsync(filePath, stream, cancellationToken);
-                    
-                    attachments.Add(new Attachment(fileName, filePath));
-                    
-                    // Update src to point to the stored path
-                    // Note: The UI will need to handle serving this, or we generate a public URL here if possible.
-                    // For now, we store the relative path in the IFileStore.
-                    img.SetAttribute("src", filePath);
+                    try 
+                    {
+                        var imgBytes = await _httpClient.GetByteArrayAsync(imgUri, cancellationToken);
+                        var extension = Path.GetExtension(imgUri.AbsolutePath);
+                        if (string.IsNullOrEmpty(extension)) extension = ".jpg";
+                        
+                        var fileName = $"{Guid.NewGuid()}{extension}";
+                        var filePath = $"images/{fileName}";
+                        
+                        using var stream = new MemoryStream(imgBytes);
+                        await _fileStore.SaveFileAsync(filePath, stream, cancellationToken);
+                        
+                        attachments.Add(new Attachment(fileName, filePath));
+                        
+                        // Update src to point to the stored path
+                        // Note: The UI will need to handle serving this, or we generate a public URL here if possible.
+                        // For now, we store the relative path in the IFileStore.
+                        img.SetAttribute("src", filePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to download image {ImgUrl}", imgUri);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to download image {ImgUrl}", imgUri);
-                }
+                contentHtml = document.Body?.InnerHtml ?? contentHtml;
+                _logger.LogInformation("Processed {Count} images for {Url}", attachments.Count, url);
             }
-            contentHtml = document.Body?.InnerHtml ?? contentHtml;
-            _logger.LogInformation("Processed {Count} images for {Url}", attachments.Count, url);
         }
         catch (Exception ex)
         {

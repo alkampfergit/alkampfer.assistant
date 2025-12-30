@@ -81,16 +81,6 @@ public class BookmarkPerformanceTests : IDisposable
     {
         // This is a fast test with mocked HTTP to validate the processing pipeline performance
         // Arrange
-        var simpleHtml = @"
-            <html>
-            <head><title>Test Page</title></head>
-            <body>
-                <h1>Main Title</h1>
-                <p>Some content here with basic formatting.</p>
-                <p>More paragraphs to simulate a typical page.</p>
-            </body>
-            </html>";
-        
         // For this test, we'd need to inject a mock HTTP handler or use a local test server
         // For now, we'll just validate that the service can be called
         // A real implementation would measure the time for the entire pipeline

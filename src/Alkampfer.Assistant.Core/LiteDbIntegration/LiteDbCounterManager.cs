@@ -50,7 +50,7 @@ public class LiteDbCounterManager : ICounterManager
 
     private class CounterDocument
     {
-        public ObjectId Id { get; set; }
+        public ObjectId? Id { get; set; }
         public string Name { get; set; } = null!;
         public long Value { get; set; }
     }

@@ -4,20 +4,37 @@ on:
     branches:
       - master
       - develop
-      - feature/*
-      - hotfix/*
-      - release/*
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-   
+    timeout-minutes: 60
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: testp$ssword
+    env:
+      AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AZURE_MODEL: gpt-4
+      AZURE_EMBEDDING_MODEL: text-embedding-ada-002
+      TEST_MONGO_INSTANCE: mongodb://admin:testp$ssword@localhost:27017/alkampfer_assistant_test?authSource=admin
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
 
-      - uses: actions/checkout@v3
+      - name: Check actor
+        run: |
+          if [ "$GITHUB_ACTOR" != "alkampfergit" ]; then
+            echo "Only the repository owner can run this workflow."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
@@ -60,19 +77,14 @@ jobs:
 
       #     $sw.Stop()
       #     throw "Could not connect to $uri within $timeoutSeconds second(s)."
-        
-      - name: Setup dotnet 3
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 3.1.x
 
-      - name: Setup dotnet 9
+      - name: Setup dotnet 10
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 9.x
+          dotnet-version: 10.x
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'zulu' # Alternative distribution options are available.
@@ -83,24 +95,75 @@ jobs:
           path: ~/sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache SonarQube Cloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@v4
         with:
-          path: ./.sonar/scanner
+          path: ${{ runner.temp }}/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
+
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: pwsh
+        shell: bash
         run: |
-          New-Item -Path ./.sonar/scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
+          mkdir -p "$RUNNER_TEMP/scanner"
+          dotnet tool update dotnet-sonarscanner --tool-path "$RUNNER_TEMP/scanner"
+
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: |
-          ./.sonar/scanner/dotnet-sonarscanner begin /k:"alkampfergit_alkampfer.assistant" /o:"alkampfergit-github" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          # determine branch name for Sonar (prefer PR head ref)
+          $BranchName = $env:GITHUB_HEAD_REF
+          if (-not $BranchName) {
+            if ($env:GITHUB_REF -match '^refs/heads/(.+)$') {
+              $BranchName = $Matches[1]
+            }
+            else {
+              # fallback to the raw ref if it couldn't be parsed
+              $BranchName = $env:GITHUB_REF
+            }
+          }
+          Write-Host "Using branch name for Sonar: $BranchName"
+
+          # prefer scanner installed in runner temp, fallback to repo-local scanner
+
+          $scanner = Join-Path $env:RUNNER_TEMP "scanner/dotnet-sonarscanner"
+          if (-not (Test-Path $scanner)) {
+            $scanner = "../.sonar/scanner/dotnet-sonarscanner"
+          }
+          if (-not (Test-Path $scanner)) {
+            throw "Sonar scanner not found in $env:RUNNER_TEMP/scanner or ../.sonar/scanner"
+          }
+          Write-Host "Using sonar scanner: $scanner"
+
+          $beginArgs = @(
+            'begin',
+            '/k:alkampfergit_alkampfer.assistant',
+            '/o:alkampfergit-github',
+            "/d:sonar.token=$env:SONAR_TOKEN",
+            '/d:sonar.host.url=https://sonarcloud.io',
+            "/d:sonar.branch.name=$BranchName"
+          )
+          & $scanner @beginArgs
+          if ($LASTEXITCODE -ne 0) {
+            throw "Sonar scanner 'begin' failed with exit code $LASTEXITCODE"
+          }
+
+          # Debug: show .sonarqube contents if present
+          if (Test-Path .sonarqube) { Get-ChildItem -Recurse -Force .sonarqube | Select-Object -First 20 }
+
+          # Run the regular build script from the repository root
           ./build.ps1 -configuration "debug"
-          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+          # Run Sonar 'end' from the same solution folder
+
+          $endArgs = @('end', "/d:sonar.login=$env:SONAR_TOKEN")
+          Write-Host "Using sonar scanner: $scanner"
+          & $scanner @endArgs
+          if ($LASTEXITCODE -ne 0) {
+            throw "Sonar scanner 'end' failed with exit code $LASTEXITCODE"
+          }

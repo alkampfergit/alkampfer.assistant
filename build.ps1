@@ -35,15 +35,20 @@ dotnet restore "$runningDirectory/src/Alkampfer.Assistant.sln"
 Assert-LastExecution -message "Error in restoring packages." -haltExecution $true
 
 Write-Host "\n\n*******************TESTING SOLUTION*******************"
+$testResultsDir = Join-Path $runningDirectory 'TestResults'
+if (-not (Test-Path $testResultsDir)) { New-Item -ItemType Directory -Path $testResultsDir | Out-Null }
+
 dotnet test "src/Alkampfer.Assistant.Tests/Alkampfer.Assistant.Tests.csproj" `
+    --configuration $configuration `
     --collect:"XPlat Code Coverage" `
-    --results-directory TestResults/ `
+    --results-directory "$testResultsDir" `
     --logger "trx;LogFileName=unittests.trx" `
     --no-restore `
+    --filter "Category!=RequiresMongoDB&Category!=Integration" `
     -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
 Assert-LastExecution -message "Error in test running." -haltExecution $true
 
 Write-Host "\n\n*******************BUILDING SOLUTION*******************"
-dotnet build "$runningDirectory/src/Alkampfer.Assistant.sln" --configuration release
+dotnet build "$runningDirectory/src/Alkampfer.Assistant.sln" --configuration $configuration
 Assert-LastExecution -message "Error in building in release configuration" -haltExecution $true
