@@ -17,14 +17,16 @@
 				"ms-dotnettools.csdevkit",
 				"ms-dotnettools.csharp",
 				"mongodb.mongodb-vscode",
-				"cweijan.vscode-database-client2"
+				"cweijan.vscode-database-client2",
+				"anthropic.claude-code"
 			]
 		}
 	},
 	"containerEnv": {
 		"TEST_MONGO_INSTANCE": "mongodb://mongodb/test",
 		"AZURE_MODEL" : "gpt-5-nano",
-		"AZURE_EMBEDDING_MODEL" : "text-embedding-3-small"
+		"AZURE_EMBEDDING_MODEL" : "text-embedding-3-small",
+		"ELASTIC_TEST_URL" : "http://elasticsearch:9200"
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

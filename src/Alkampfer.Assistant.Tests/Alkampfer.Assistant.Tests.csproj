@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Alkampfer.Assistant.Core\Alkampfer.Assistant.Core.csproj" />
+    <ProjectReference Include="..\Alkampfer.Assistant.ElasticSearch\Alkampfer.Assistant.ElasticSearch.csproj" />
     <ProjectReference Include="..\Alkampfer.Assistant.Interfaces\Alkampfer.Assistant.Interfaces.csproj" />
   </ItemGroup>
 
