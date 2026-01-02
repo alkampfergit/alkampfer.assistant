@@ -20,13 +20,21 @@
 				"cweijan.vscode-database-client2",
 				"anthropic.claude-code"
 			]
+		},
+		"settings": {
+			"terminal.integrated.defaultProfile.linux": "zsh",
+			"terminal.integrated.profiles.linux": {
+				"zsh": {
+					"path": "/usr/bin/zsh"
+				}
+			}
 		}
 	},
 	"containerEnv": {
 		"TEST_MONGO_INSTANCE": "mongodb://mongodb/test",
-		"AZURE_MODEL" : "gpt-5-nano",
-		"AZURE_EMBEDDING_MODEL" : "text-embedding-3-small",
-		"ELASTIC_TEST_URL" : "http://elasticsearch:9200"
+		"AZURE_MODEL": "gpt-5-nano",
+		"AZURE_EMBEDDING_MODEL": "text-embedding-3-small",
+		"ELASTIC_TEST_URL": "http://elasticsearch:9200"
 	}
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
