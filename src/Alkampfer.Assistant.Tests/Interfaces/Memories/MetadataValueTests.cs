@@ -187,4 +187,73 @@ public class MetadataValueTests
         Assert.Equal(true, boolValue.Value);
         Assert.Equal(dateTime, dateTimeValue.Value);
     }
+
+    [Fact]
+    public void ImplicitConversion_FromStringArray_ShouldCreateKeywordsMetadataValue()
+    {
+        // Arrange
+        var keywords = new[] { "AI", "Machine Learning", "NLP" };
+
+        // Act
+        MetadataValue value = keywords;
+
+        // Assert
+        Assert.NotNull(value);
+        var result = value.AsKeywords();
+        Assert.NotNull(result);
+        Assert.Equal(keywords, result);
+        Assert.Null(value.AsString());
+        Assert.Null(value.AsInt());
+        Assert.Null(value.AsDouble());
+        Assert.Null(value.AsBool());
+        Assert.Null(value.AsDateTime());
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromEmptyStringArray_ShouldCreateKeywordsMetadataValue()
+    {
+        // Arrange
+        var keywords = Array.Empty<string>();
+
+        // Act
+        MetadataValue value = keywords;
+
+        // Assert
+        Assert.NotNull(value);
+        var result = value.AsKeywords();
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsKeywords_WhenNotKeywordsType_ShouldReturnNull()
+    {
+        // Arrange
+        MetadataValue stringValue = "test";
+        MetadataValue intValue = 42;
+        MetadataValue doubleValue = 3.14;
+        MetadataValue boolValue = true;
+        MetadataValue dateTimeValue = DateTime.UtcNow;
+
+        // Act & Assert
+        Assert.Null(stringValue.AsKeywords());
+        Assert.Null(intValue.AsKeywords());
+        Assert.Null(doubleValue.AsKeywords());
+        Assert.Null(boolValue.AsKeywords());
+        Assert.Null(dateTimeValue.AsKeywords());
+    }
+
+    [Fact]
+    public void Value_WithKeywords_ShouldReturnUnderlyingArray()
+    {
+        // Arrange
+        var keywords = new[] { "tag1", "tag2", "tag3" };
+
+        // Act
+        MetadataValue value = keywords;
+
+        // Assert
+        Assert.Equal(keywords, value.Value);
+        Assert.IsType<string[]>(value.Value);
+    }
 }

@@ -151,6 +151,21 @@ public class VectorRecord
     }
 
     /// <summary>
+    /// Adds or updates keywords metadata.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="value">The keywords array.</param>
+    /// <returns>This instance for fluent chaining.</returns>
+    public VectorRecord WithMetadata(string key, params string[] value)
+    {
+        if (key == null) throw new ArgumentNullException(nameof(key));
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        _metadata[key] = value;
+        return this;
+    }
+
+    /// <summary>
     /// Retrieves a vector by key.
     /// </summary>
     /// <param name="key">The vector key.</param>
@@ -218,5 +233,15 @@ public class VectorRecord
     public DateTime? GetMetadataAsDateTime(string key)
     {
         return GetMetadata(key)?.AsDateTime();
+    }
+
+    /// <summary>
+    /// Retrieves metadata as a keywords array.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <returns>The keywords array if found and of correct type, otherwise null.</returns>
+    public string[]? GetMetadataAsKeywords(string key)
+    {
+        return GetMetadata(key)?.AsKeywords();
     }
 }

@@ -103,6 +103,21 @@ public static class ElasticVectorRecordMapping
         };
         dynamicTemplates.Add(dateDict);
 
+        // Keywords fields (k_*) - lowercase ignore case
+        var keywordsTemplate = new DynamicTemplate
+        {
+            Match = ["k_*"],
+            Mapping = new KeywordProperty
+            {
+                Normalizer = "lowercase"
+            }
+        };
+        var keywordsDict = new Dictionary<string, DynamicTemplate>
+        {
+            ["KeywordsMetadata"] = keywordsTemplate
+        };
+        dynamicTemplates.Add(keywordsDict);
+
         // Assign dynamic templates to mapping
         var templateCollection = new Dictionary<string, DynamicTemplate>();
         foreach (var dict in dynamicTemplates)

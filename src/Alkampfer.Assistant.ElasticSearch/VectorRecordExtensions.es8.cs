@@ -20,6 +20,7 @@ public static class VectorRecordExtensions
     /// - n_ for numeric (double)
     /// - b_ for boolean
     /// - d_ for DateTime (stored as ISO8601 string)
+    /// - k_ for keywords (string array, lowercase normalized)
     /// </summary>
     /// <param name="record">The VectorRecord to convert.</param>
     /// <returns>An IDictionary representing the record for Elasticsearch indexing.</returns>
@@ -73,6 +74,13 @@ public static class VectorRecordExtensions
             {
                 // Store DateTime as ISO8601 string
                 obj[$"d_{key}"] = dateValue.Value.ToString("O", CultureInfo.InvariantCulture);
+                continue;
+            }
+
+            var keywordsValue = value.AsKeywords();
+            if (keywordsValue != null)
+            {
+                obj[$"k_{key}"] = keywordsValue;
                 continue;
             }
         }
@@ -173,6 +181,29 @@ public static class VectorRecordExtensions
                     if (dateString != null && DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateValue))
                     {
                         record.WithMetadata(key, dateValue);
+                    }
+                }
+            }
+            else if (fieldName.StartsWith("k_") && fieldName.Length > 2)
+            {
+                var key = fieldName[2..];
+                if (property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    var keywords = new List<string>();
+                    foreach (var element in property.Value.EnumerateArray())
+                    {
+                        if (element.ValueKind == JsonValueKind.String)
+                        {
+                            var keyword = element.GetString();
+                            if (keyword != null)
+                            {
+                                keywords.Add(keyword);
+                            }
+                        }
+                    }
+                    if (keywords.Count > 0)
+                    {
+                        record.WithMetadata(key, keywords.ToArray());
                     }
                 }
             }

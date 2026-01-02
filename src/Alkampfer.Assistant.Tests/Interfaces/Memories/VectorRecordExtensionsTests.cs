@@ -321,5 +321,184 @@ namespace Alkampfer.Assistant.Tests.Interfaces.Memories
             Assert.Equal(original.GetMetadataAsString("title"), parsed.GetMetadataAsString("title"));
             Assert.Equal(original.GetMetadataAsInt("count"), parsed.GetMetadataAsInt("count"));
         }
+
+        [Fact]
+        public void ToExpandoObject_WithKeywords_IncludesKeywordsWithPrefix()
+        {
+            var keywords = new[] { "AI", "Machine Learning", "NLP" };
+            var record = VectorRecord.Create("id-kw-1", "doc-kw-1")
+                .WithMetadata("tags", keywords);
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.Equal(3, obj.Count); // id, documentId, k_tags
+            Assert.Equal("id-kw-1", obj["id"]);
+            Assert.Equal("doc-kw-1", obj["documentId"]);
+            Assert.True(obj.ContainsKey("k_tags"));
+            var result = obj["k_tags"] as string[];
+            Assert.NotNull(result);
+            Assert.Equal(keywords, result);
+        }
+
+        [Fact]
+        public void ToExpandoObject_WithEmptyKeywords_IncludesEmptyArray()
+        {
+            var keywords = Array.Empty<string>();
+            var record = VectorRecord.Create("id-kw-2", "doc-kw-2")
+                .WithMetadata("tags", keywords);
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.True(obj.ContainsKey("k_tags"));
+            var result = obj["k_tags"] as string[];
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void ToExpandoObject_WithKeywordsAndOtherMetadata_IncludesAll()
+        {
+            var keywords = new[] { "tag1", "tag2" };
+            var record = VectorRecord.Create("id-kw-3", "doc-kw-3")
+                .WithMetadata("tags", keywords)
+                .WithMetadata("title", "Test")
+                .WithMetadata("count", 5);
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.Equal(5, obj.Count); // id, documentId, k_tags, s_title, i_count
+            Assert.True(obj.ContainsKey("k_tags"));
+            Assert.Equal("Test", obj["s_title"]);
+            Assert.Equal(5, obj["i_count"]);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithKeywords_ReconstructsKeywordsArray()
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "id", "id-kw-4" },
+                { "documentId", "doc-kw-4" },
+                { "k_tags", new[] { "AI", "ML", "DL" } }
+            };
+
+            var json = VectorRecordTestHelpers.JsonElementFromObject(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Equal("id-kw-4", record.Id);
+            Assert.Equal("doc-kw-4", record.DocumentId);
+            var keywords = record.GetMetadataAsKeywords("tags");
+            Assert.NotNull(keywords);
+            Assert.Equal(new[] { "AI", "ML", "DL" }, keywords);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithEmptyKeywordsArray_IgnoresField()
+        {
+            var payload = "{ \"id\": \"id-kw-5\", \"documentId\": \"doc-kw-5\", \"k_tags\": [] }";
+            var json = VectorRecordTestHelpers.JsonElementFromRawString(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            var keywords = record.GetMetadataAsKeywords("tags");
+            Assert.Null(keywords); // Empty arrays are not added
+        }
+
+        [Fact]
+        public void FromJsonElement_WithNullInKeywordsArray_SkipsNullValues()
+        {
+            var payload = "{ \"id\": \"id-kw-6\", \"documentId\": \"doc-kw-6\", \"k_tags\": [\"AI\", null, \"ML\"] }";
+            var json = VectorRecordTestHelpers.JsonElementFromRawString(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            var keywords = record.GetMetadataAsKeywords("tags");
+            Assert.NotNull(keywords);
+            Assert.Equal(new[] { "AI", "ML" }, keywords); // null skipped
+        }
+
+        [Fact]
+        public void FromJsonElement_WithNonArrayKeywordsField_IgnoresField()
+        {
+            var payload = "{ \"id\": \"id-kw-7\", \"documentId\": \"doc-kw-7\", \"k_tags\": \"not-an-array\" }";
+            var json = VectorRecordTestHelpers.JsonElementFromRawString(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            var keywords = record.GetMetadataAsKeywords("tags");
+            Assert.Null(keywords);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithKeywordsAndOtherMetadata_ReconstructsAll()
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "id", "id-kw-8" },
+                { "documentId", "doc-kw-8" },
+                { "k_tags", new[] { "tag1", "tag2" } },
+                { "s_title", "Test Title" },
+                { "i_count", 42 }
+            };
+
+            var json = VectorRecordTestHelpers.JsonElementFromObject(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Equal("id-kw-8", record.Id);
+            var keywords = record.GetMetadataAsKeywords("tags");
+            Assert.NotNull(keywords);
+            Assert.Equal(new[] { "tag1", "tag2" }, keywords);
+            Assert.Equal("Test Title", record.GetMetadataAsString("title"));
+            Assert.Equal(42, record.GetMetadataAsInt("count"));
+        }
+
+        [Fact]
+        public void RoundTrip_WithKeywords_PreservesKeywords()
+        {
+            var keywords = new[] { "AI", "Machine Learning", "Deep Learning" };
+            var original = VectorRecord.Create("id-kw-9", "doc-kw-9")
+                .WithMetadata("tags", keywords)
+                .WithMetadata("title", "Test");
+
+            var expando = original.ToExpandoObjectForIndexing();
+            var json = JsonSerializer.Serialize(expando);
+            using var doc = JsonDocument.Parse(json);
+            var parsed = VectorRecordExtensions.FromJsonElement(doc.RootElement);
+
+            Assert.Equal(original.Id, parsed.Id);
+            Assert.Equal(original.DocumentId, parsed.DocumentId);
+            var parsedKeywords = parsed.GetMetadataAsKeywords("tags");
+            Assert.NotNull(parsedKeywords);
+            Assert.Equal(keywords, parsedKeywords);
+            Assert.Equal(original.GetMetadataAsString("title"), parsed.GetMetadataAsString("title"));
+        }
+
+        [Fact]
+        public void RoundTrip_WithAllMetadataTypes_PreservesAll()
+        {
+            var dt = DateTime.UtcNow;
+            var keywords = new[] { "tag1", "tag2", "tag3" };
+            var original = new VectorRecordTestHelpers.VectorRecordBuilder("id-all-1", "doc-all-1")
+                .WithString("title", "complete")
+                .WithInt("count", 99)
+                .WithDouble("score", 9.87)
+                .WithBool("active", true)
+                .WithDate("created", dt)
+                .WithKeywords("tags", keywords)
+                .Build();
+
+            var expando = original.ToExpandoObjectForIndexing();
+            var json = JsonSerializer.Serialize(expando);
+            using var doc = JsonDocument.Parse(json);
+            var parsed = VectorRecordExtensions.FromJsonElement(doc.RootElement);
+
+            Assert.Equal(original.Id, parsed.Id);
+            Assert.Equal(original.DocumentId, parsed.DocumentId);
+            Assert.Equal(original.GetMetadataAsString("title"), parsed.GetMetadataAsString("title"));
+            Assert.Equal(original.GetMetadataAsInt("count"), parsed.GetMetadataAsInt("count"));
+            Assert.True(Math.Abs(original.GetMetadataAsDouble("score")!.Value - parsed.GetMetadataAsDouble("score")!.Value) < 1e-9);
+            Assert.Equal(original.GetMetadataAsBool("active"), parsed.GetMetadataAsBool("active"));
+            Assert.True(Math.Abs((original.GetMetadataAsDateTime("created")!.Value - parsed.GetMetadataAsDateTime("created")!.Value).TotalSeconds) < 1);
+            var parsedKeywords = parsed.GetMetadataAsKeywords("tags");
+            Assert.NotNull(parsedKeywords);
+            Assert.Equal(keywords, parsedKeywords);
+        }
     }
 }

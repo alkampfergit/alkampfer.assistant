@@ -63,6 +63,12 @@ namespace Alkampfer.Assistant.Tests.Interfaces.Memories
                 return this;
             }
 
+            public VectorRecordBuilder WithKeywords(string key, string[] value)
+            {
+                _record.WithMetadata(key, value);
+                return this;
+            }
+
             public VectorRecord Build() => _record;
         }
 

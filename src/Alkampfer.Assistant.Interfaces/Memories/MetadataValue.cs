@@ -3,7 +3,7 @@ using System;
 namespace Alkampfer.Assistant.Interfaces.Memories;
 
 /// <summary>
-/// Represents a metadata value that can be a string, int, double, bool, or DateTime.
+/// Represents a metadata value that can be a string, int, double, bool, DateTime, or keywords (string array).
 /// </summary>
 public class MetadataValue
 {
@@ -21,6 +21,7 @@ public class MetadataValue
     public static implicit operator MetadataValue(double value) => new(value, MetadataValueType.Double);
     public static implicit operator MetadataValue(bool value) => new(value, MetadataValueType.Boolean);
     public static implicit operator MetadataValue(DateTime value) => new(value, MetadataValueType.DateTime);
+    public static implicit operator MetadataValue(string[] value) => new(value, MetadataValueType.Keywords);
 
     /// <summary>
     /// Attempts to retrieve the value as a string.
@@ -53,6 +54,12 @@ public class MetadataValue
     public DateTime? AsDateTime() => _type == MetadataValueType.DateTime ? (DateTime)_value : null;
 
     /// <summary>
+    /// Attempts to retrieve the value as a keywords array.
+    /// </summary>
+    /// <returns>The string array value if the type matches, otherwise null.</returns>
+    public string[]? AsKeywords() => _type == MetadataValueType.Keywords ? (string[])_value : null;
+
+    /// <summary>
     /// Gets the raw value as an object.
     /// </summary>
     public object Value => _value;
@@ -63,6 +70,7 @@ public class MetadataValue
         Int,
         Double,
         Boolean,
-        DateTime
+        DateTime,
+        Keywords
     }
 }

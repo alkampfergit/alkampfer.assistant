@@ -510,6 +510,104 @@ public class VectorRecordTests
     }
 
     [Fact]
+    public void WithMetadata_Keywords_ShouldAddMetadataAndReturnSameInstance()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        var keywords = new[] { "AI", "Machine Learning", "NLP" };
+
+        // Act
+        var result = record.WithMetadata("tags", keywords);
+
+        // Assert
+        Assert.Same(record, result);
+        Assert.Single(record.Metadata);
+        var retrievedKeywords = record.Metadata["tags"].AsKeywords();
+        Assert.NotNull(retrievedKeywords);
+        Assert.Equal(keywords, retrievedKeywords);
+    }
+
+    [Fact]
+    public void WithMetadata_Keywords_WithNullKey_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        var keywords = new[] { "tag1", "tag2" };
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => record.WithMetadata(null!, keywords));
+    }
+
+    [Fact]
+    public void WithMetadata_Keywords_WithNullValue_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => record.WithMetadata("tags", (string[])null!));
+    }
+
+    [Fact]
+    public void GetMetadataAsKeywords_WithExistingKeywordsKey_ShouldReturnKeywords()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        var keywords = new[] { "AI", "ML", "DL" };
+        record.WithMetadata("tags", keywords);
+
+        // Act
+        var result = record.GetMetadataAsKeywords("tags");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(keywords, result);
+    }
+
+    [Fact]
+    public void GetMetadataAsKeywords_WithWrongType_ShouldReturnNull()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        record.WithMetadata("title", "Document Title");
+
+        // Act
+        var result = record.GetMetadataAsKeywords("title");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetMetadataAsKeywords_WithNonExistingKey_ShouldReturnNull()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+
+        // Act
+        var result = record.GetMetadataAsKeywords("nonexistent");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void WithMetadata_EmptyKeywords_ShouldAddMetadata()
+    {
+        // Arrange
+        var record = VectorRecord.Create("id-123", "doc-456");
+        var keywords = Array.Empty<string>();
+
+        // Act
+        record.WithMetadata("tags", keywords);
+
+        // Assert
+        var result = record.GetMetadataAsKeywords("tags");
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public void FluentInterface_CompleteExample_ShouldWorkCorrectly()
     {
         // Arrange
@@ -541,5 +639,33 @@ public class VectorRecordTests
         Assert.Equal(0.95, record.GetMetadataAsDouble("relevance"));
         Assert.Equal(true, record.GetMetadataAsBool("isActive"));
         Assert.Equal(dateTime, record.GetMetadataAsDateTime("createdAt"));
+    }
+
+    [Fact]
+    public void FluentInterface_WithKeywords_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var keywords = new[] { "AI", "Machine Learning", "Deep Learning" };
+        var textVector = new float[] { 0.1f, 0.2f, 0.3f };
+
+        // Act
+        var record = VectorRecord.Create("chunk-456", "doc-789")
+            .WithVector("text", textVector)
+            .WithMetadata("tags", keywords)
+            .WithMetadata("title", "AI Document")
+            .WithMetadata("count", 5);
+
+        // Assert
+        Assert.Equal("chunk-456", record.Id);
+        Assert.Equal("doc-789", record.DocumentId);
+        Assert.Single(record.Vectors);
+        Assert.Equal(3, record.Metadata.Count);
+
+        Assert.Equal(textVector, record.GetVector("text"));
+        var retrievedKeywords = record.GetMetadataAsKeywords("tags");
+        Assert.NotNull(retrievedKeywords);
+        Assert.Equal(keywords, retrievedKeywords);
+        Assert.Equal("AI Document", record.GetMetadataAsString("title"));
+        Assert.Equal(5, record.GetMetadataAsInt("count"));
     }
 }
