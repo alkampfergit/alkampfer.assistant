@@ -46,6 +46,48 @@ namespace Alkampfer.Assistant.Tests.Interfaces.Memories
         }
 
         [Fact]
+        public void ToExpandoObject_WithText_IncludesTextField()
+        {
+            var record = VectorRecord.Create("id-text-1", "doc-text-1")
+                .WithText("This is a sample text content");
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.Equal(3, obj.Count); // id, documentId, text
+            Assert.Equal("id-text-1", obj["id"]);
+            Assert.Equal("doc-text-1", obj["documentId"]);
+            Assert.Equal("This is a sample text content", obj["text"]);
+        }
+
+        [Fact]
+        public void ToExpandoObject_WithNullText_ExcludesTextField()
+        {
+            var record = VectorRecord.Create("id-text-2", "doc-text-2")
+                .WithText(null);
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.Equal(2, obj.Count); // Only id and documentId
+            Assert.False(obj.ContainsKey("text"));
+        }
+
+        [Fact]
+        public void ToExpandoObject_WithTextAndMetadata_IncludesBoth()
+        {
+            var record = VectorRecord.Create("id-text-3", "doc-text-3")
+                .WithText("Sample text")
+                .WithMetadata("category", "test")
+                .WithMetadata("count", 10);
+
+            var obj = record.ToExpandoObjectForIndexing();
+
+            Assert.Equal(5, obj.Count); // id, documentId, text, s_category, i_count
+            Assert.Equal("Sample text", obj["text"]);
+            Assert.Equal("test", obj["s_category"]);
+            Assert.Equal(10, obj["i_count"]);
+        }
+
+        [Fact]
         public void FromJsonElement_Reconstructs_AllMetadataTypes()
         {
             var dt = DateTime.UtcNow;
@@ -195,6 +237,89 @@ namespace Alkampfer.Assistant.Tests.Interfaces.Memories
             var record = VectorRecordExtensions.FromJsonElement(json);
 
             Assert.Null(record.GetMetadataAsInt("big"));
+        }
+
+        [Fact]
+        public void FromJsonElement_WithTextField_ReconstructsText()
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "id", "id-text-4" },
+                { "documentId", "doc-text-4" },
+                { "text", "This is the text content" }
+            };
+
+            var json = VectorRecordTestHelpers.JsonElementFromObject(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Equal("id-text-4", record.Id);
+            Assert.Equal("doc-text-4", record.DocumentId);
+            Assert.Equal("This is the text content", record.Text);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithoutTextField_TextIsNull()
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "id", "id-text-5" },
+                { "documentId", "doc-text-5" }
+            };
+
+            var json = VectorRecordTestHelpers.JsonElementFromObject(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Null(record.Text);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithNullTextField_TextIsNull()
+        {
+            var payload = "{ \"id\": \"id-text-6\", \"documentId\": \"doc-text-6\", \"text\": null }";
+            var json = VectorRecordTestHelpers.JsonElementFromRawString(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Null(record.Text);
+        }
+
+        [Fact]
+        public void FromJsonElement_WithTextAndMetadata_ReconstructsBoth()
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "id", "id-text-7" },
+                { "documentId", "doc-text-7" },
+                { "text", "Combined content" },
+                { "s_category", "test" },
+                { "i_count", 42 }
+            };
+
+            var json = VectorRecordTestHelpers.JsonElementFromObject(payload);
+            var record = VectorRecordExtensions.FromJsonElement(json);
+
+            Assert.Equal("Combined content", record.Text);
+            Assert.Equal("test", record.GetMetadataAsString("category"));
+            Assert.Equal(42, record.GetMetadataAsInt("count"));
+        }
+
+        [Fact]
+        public void RoundTrip_WithText_PreservesTextAndMetadata()
+        {
+            var original = VectorRecord.Create("id-text-8", "doc-text-8")
+                .WithText("Round trip text content")
+                .WithMetadata("title", "Test")
+                .WithMetadata("count", 100);
+
+            var expando = original.ToExpandoObjectForIndexing();
+            var json = JsonSerializer.Serialize(expando);
+            using var doc = JsonDocument.Parse(json);
+            var parsed = VectorRecordExtensions.FromJsonElement(doc.RootElement);
+
+            Assert.Equal(original.Id, parsed.Id);
+            Assert.Equal(original.DocumentId, parsed.DocumentId);
+            Assert.Equal(original.Text, parsed.Text);
+            Assert.Equal(original.GetMetadataAsString("title"), parsed.GetMetadataAsString("title"));
+            Assert.Equal(original.GetMetadataAsInt("count"), parsed.GetMetadataAsInt("count"));
         }
     }
 }

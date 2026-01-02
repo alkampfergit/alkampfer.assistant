@@ -27,6 +27,10 @@ public static class ElasticVectorRecordMapping
         // Explicit mappings for core fields
         mapping.Properties["id"] = new KeywordProperty();
         mapping.Properties["documentId"] = new KeywordProperty();
+        mapping.Properties["text"] = new TextProperty
+        {
+            Analyzer = "standard"
+        };
 
         // Dynamic templates for prefixed metadata fields
         var dynamicTemplates = new List<IDictionary<string, DynamicTemplate>>();

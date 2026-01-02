@@ -31,6 +31,12 @@ public static class VectorRecordExtensions
         obj["id"] = record.Id;
         obj["documentId"] = record.DocumentId;
 
+        // Text field (optional)
+        if (record.Text != null)
+        {
+            obj["text"] = record.Text;
+        }
+
         // Metadata with type-based prefixes
         foreach (var (key, value) in record.Metadata)
         {
@@ -100,13 +106,23 @@ public static class VectorRecordExtensions
 
         var record = VectorRecord.Create(id, documentId);
 
+        // Extract optional text field
+        if (source.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+        {
+            var text = textProp.GetString();
+            if (text != null)
+            {
+                record.WithText(text);
+            }
+        }
+
         // Parse prefixed metadata fields
         foreach (var property in source.EnumerateObject())
         {
             var fieldName = property.Name;
 
             // Skip core fields
-            if (fieldName == "id" || fieldName == "documentId")
+            if (fieldName == "id" || fieldName == "documentId" || fieldName == "text")
             {
                 continue;
             }

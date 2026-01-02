@@ -293,4 +293,162 @@ public class ElasticIndexerTests : IAsyncDisposable
         Assert.Equal(0, result.SuccessfulRecords);
         Assert.Equal(0, result.FailedRecords);
     }
+
+    [Fact]
+    public async Task IndexRecordsAsync_WithTextProperty_IndexesSuccessfully()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var record = VectorRecord.Create("test-text-1", "doc-text-1")
+            .WithText("This is a sample text content for testing")
+            .WithMetadata("category", "test");
+
+        var result = await _indexer.IndexRecordsAsync(indexName, new[] { record });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.TotalRecords);
+        Assert.Equal(1, result.SuccessfulRecords);
+        Assert.Equal(0, result.FailedRecords);
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_WithTextProperty_RetrievesTextCorrectly()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var textContent = "The quick brown fox jumps over the lazy dog. This is a test of the text field functionality.";
+        var record = VectorRecord.Create("test-text-2", "doc-text-2")
+            .WithText(textContent)
+            .WithMetadata("title", "Test Document")
+            .WithMetadata("priority", 5);
+
+        await _indexer.IndexRecordsAsync(indexName, new[] { record });
+        await Task.Delay(1000); // Wait for indexing
+
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-2");
+
+        Assert.NotNull(retrieved);
+        Assert.Equal("test-text-2", retrieved!.Id);
+        Assert.Equal("doc-text-2", retrieved.DocumentId);
+        Assert.Equal(textContent, retrieved.Text);
+        Assert.Equal("Test Document", retrieved.GetMetadataAsString("title"));
+        Assert.Equal(5, retrieved.GetMetadataAsInt("priority"));
+    }
+
+    [Fact]
+    public async Task RoundTrip_WithTextProperty_PreservesAllData()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var testDate = DateTime.UtcNow;
+        var textContent = "Multi-line text content\nwith special characters: @#$%^&*()\nand unicode: \u00e9\u00e0\u00fc\u00f1";
+
+        var record = VectorRecord.Create("roundtrip-text-1", "doc-roundtrip-text")
+            .WithText(textContent)
+            .WithMetadata("string_field", "Hello, World!")
+            .WithMetadata("int_field", 12345)
+            .WithMetadata("double_field", 3.14159)
+            .WithMetadata("bool_field", true)
+            .WithMetadata("date_field", testDate);
+
+        await _indexer.IndexRecordsAsync(indexName, new[] { record });
+        await Task.Delay(1000); // Wait for indexing
+
+        var retrieved = await _indexer.GetRecordAsync(indexName, "roundtrip-text-1");
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(textContent, retrieved!.Text);
+        Assert.Equal("Hello, World!", retrieved.GetMetadataAsString("string_field"));
+        Assert.Equal(12345, retrieved.GetMetadataAsInt("int_field"));
+
+        var doubleValue = retrieved.GetMetadataAsDouble("double_field");
+        Assert.NotNull(doubleValue);
+        Assert.Equal(3.14159, doubleValue.Value, precision: 5);
+
+        Assert.Equal(true, retrieved.GetMetadataAsBool("bool_field"));
+
+        var retrievedDate = retrieved.GetMetadataAsDateTime("date_field");
+        Assert.NotNull(retrievedDate);
+        Assert.True(Math.Abs((retrievedDate.Value - testDate).TotalSeconds) < 1);
+    }
+
+    [Fact]
+    public async Task IndexRecordsAsync_WithNullText_IndexesWithoutTextField()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var record = VectorRecord.Create("test-text-null-1", "doc-text-null-1")
+            .WithText(null)
+            .WithMetadata("category", "test");
+
+        var result = await _indexer.IndexRecordsAsync(indexName, new[] { record });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.SuccessfulRecords);
+
+        await Task.Delay(1000); // Wait for indexing
+
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-null-1");
+
+        Assert.NotNull(retrieved);
+        Assert.Null(retrieved!.Text);
+        Assert.Equal("test", retrieved.GetMetadataAsString("category"));
+    }
+
+    [Fact]
+    public async Task IndexRecordsAsync_WithEmptyText_IndexesEmptyString()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var record = VectorRecord.Create("test-text-empty-1", "doc-text-empty-1")
+            .WithText("")
+            .WithMetadata("status", "empty");
+
+        var result = await _indexer.IndexRecordsAsync(indexName, new[] { record });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.SuccessfulRecords);
+
+        await Task.Delay(1000); // Wait for indexing
+
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-empty-1");
+
+        Assert.NotNull(retrieved);
+        Assert.Equal("", retrieved!.Text);
+        Assert.Equal("empty", retrieved.GetMetadataAsString("status"));
+    }
+
+    [Fact]
+    public async Task IndexRecordsAsync_WithLongText_IndexesSuccessfully()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        // Create a long text (several paragraphs)
+        var longText = string.Join("\n\n", Enumerable.Range(1, 50)
+            .Select(i => $"Paragraph {i}: Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+                        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."));
+
+        var record = VectorRecord.Create("test-text-long-1", "doc-text-long-1")
+            .WithText(longText)
+            .WithMetadata("word_count", 450);
+
+        var result = await _indexer.IndexRecordsAsync(indexName, new[] { record });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.SuccessfulRecords);
+
+        await Task.Delay(1000); // Wait for indexing
+
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-long-1");
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(longText, retrieved!.Text);
+        Assert.Equal(450, retrieved.GetMetadataAsInt("word_count"));
+    }
 }

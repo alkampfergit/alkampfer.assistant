@@ -22,6 +22,11 @@ public class VectorRecord
     public string DocumentId { get; }
 
     /// <summary>
+    /// Gets the optional text content associated with this record.
+    /// </summary>
+    public string? Text { get; private set; }
+
+    /// <summary>
     /// Gets the collection of named vectors.
     /// </summary>
     public IReadOnlyDictionary<string, float[]> Vectors => _vectors;
@@ -46,6 +51,17 @@ public class VectorRecord
     public static VectorRecord Create(string id, string documentId)
     {
         return new VectorRecord(id, documentId);
+    }
+
+    /// <summary>
+    /// Sets the text content for this record.
+    /// </summary>
+    /// <param name="text">The text content.</param>
+    /// <returns>This instance for fluent chaining.</returns>
+    public VectorRecord WithText(string? text)
+    {
+        Text = text;
+        return this;
     }
 
     /// <summary>
