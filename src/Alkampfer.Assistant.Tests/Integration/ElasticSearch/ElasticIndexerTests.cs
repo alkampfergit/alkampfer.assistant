@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.ElasticSearch;
 using Alkampfer.Assistant.Interfaces.Memories;
 using Xunit;
@@ -20,9 +21,10 @@ public class ElasticIndexerTests : IAsyncDisposable
 
     public ElasticIndexerTests()
     {
+        // use dotenv to load environment variables from .env file if present
+        DotEnv.Load();
         // Get Elasticsearch URL from environment variable
         var elasticUrl = Environment.GetEnvironmentVariable("ELASTIC_TEST_URL");
-
         if (string.IsNullOrEmpty(elasticUrl))
         {
             throw new InvalidOperationException(

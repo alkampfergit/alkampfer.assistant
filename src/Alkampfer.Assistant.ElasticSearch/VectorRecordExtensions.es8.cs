@@ -115,16 +115,19 @@ public static class VectorRecordExtensions
             if (fieldName.StartsWith("s_") && fieldName.Length > 2)
             {
                 var key = fieldName[2..];
-                var value = property.Value.GetString();
-                if (value != null)
+                if (property.Value.ValueKind == JsonValueKind.String)
                 {
-                    record.WithMetadata(key, value);
+                    var value = property.Value.GetString();
+                    if (value != null)
+                    {
+                        record.WithMetadata(key, value);
+                    }
                 }
             }
             else if (fieldName.StartsWith("i_") && fieldName.Length > 2)
             {
                 var key = fieldName[2..];
-                if (property.Value.TryGetInt32(out var intValue))
+                if (property.Value.ValueKind == JsonValueKind.Number && property.Value.TryGetInt32(out var intValue))
                 {
                     record.WithMetadata(key, intValue);
                 }
@@ -132,7 +135,7 @@ public static class VectorRecordExtensions
             else if (fieldName.StartsWith("n_") && fieldName.Length > 2)
             {
                 var key = fieldName[2..];
-                if (property.Value.TryGetDouble(out var doubleValue))
+                if (property.Value.ValueKind == JsonValueKind.Number && property.Value.TryGetDouble(out var doubleValue))
                 {
                     record.WithMetadata(key, doubleValue);
                 }
@@ -148,10 +151,13 @@ public static class VectorRecordExtensions
             else if (fieldName.StartsWith("d_") && fieldName.Length > 2)
             {
                 var key = fieldName[2..];
-                var dateString = property.Value.GetString();
-                if (dateString != null && DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateValue))
+                if (property.Value.ValueKind == JsonValueKind.String)
                 {
-                    record.WithMetadata(key, dateValue);
+                    var dateString = property.Value.GetString();
+                    if (dateString != null && DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateValue))
+                    {
+                        record.WithMetadata(key, dateValue);
+                    }
                 }
             }
             // Note: Vector fields will be handled in future enhancement

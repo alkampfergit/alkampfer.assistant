@@ -407,3 +407,149 @@ Dynamic Template Matching:
 6. Each template dictionary needs unique name key
 7. Nested/Object properties have their own Properties
 8. Always check response.IsValidResponse
+
+# Queries
+
+# Elasticsearch Query Guide (Elastic.Clients.Elasticsearch v8)
+
+A focused, implementation-oriented reference for building Elasticsearch queries using the Elastic.Clients.Elasticsearch v8 types. Keep this short and use it as a checklist or snippet bank when translating high-level filter tokens to ES queries.
+
+## Core rules
+
+- Use the `Query` factory helpers (e.g. `Query.Term`, `Query.Range`, `Query.Match`, `Query.Bool`, `Query.Prefix`, `Query.Wildcard`, `Query.Terms`).
+- Prefer `BoolQuery` with `Must`/`Should`/`MustNot` for logical composition (AND/OR/NOT).
+- Respect field analyzer suffixes in mappings:
+  - `.raw` — not analyzed, preserves case (use for exact, case-sensitive matches)
+  - `.lowercase` (or similar) — not analyzed, lowercased for case-insensitive exact matches
+  - no suffix — analyzed (full-text)
+- For nested arrays/objects use `NestedQuery` and set `Path` to the nested field.
+- For Terms queries use `FieldValue` wrappers if needed (e.g. `FieldValue.String(value)`).
+
+## Patterns & Examples
+
+Note: replace `fieldName` / `nested.path` / `value` with your concrete names.
+
+### Exact (term) match — case sensitive
+
+```csharp
+return Query.Term(new TermQuery("myField.raw") { Value = value });
+```
+
+### Exact (term) match — case insensitive
+
+```csharp
+return Query.Match(new MatchQuery("myField.lowercase") { Query = value.ToLower() });
+```
+
+### Full-text match (analyzed)
+
+```csharp
+return Query.Match(new MatchQuery("myField") { Query = value });
+```
+
+### Range queries (numbers / dates)
+
+```csharp
+// numeric
+return Query.Range(new NumberRangeQuery("price") { Gte = 10, Lt = 100 });
+
+// date
+return Query.Range(new DateRangeQuery("createdAt") { Gte = start, Lte = end });
+```
+
+### Prefix / StartsWith
+
+```csharp
+return Query.Prefix(new PrefixQuery("name.lowercase") { Value = prefix.ToLower() });
+```
+
+### Wildcard / Contains / EndsWith
+
+```csharp
+// contains
+return Query.Wildcard(new WildcardQuery("description.lowercase") { Value = "*" + term.ToLower() + "*" });
+
+// ends with
+return Query.Wildcard(new WildcardQuery("tag.raw") { Value = "*" + suffix });
+```
+
+### OneOf (terms) / NotOneOf
+
+```csharp
+// one of (case sensitive on raw)
+return Query.Terms(new TermsQuery()
+{
+    Field = "status.raw",
+    Terms = new TermsQueryField(values.Select(v => FieldValue.String(v)).ToArray())
+});
+
+// not one of
+return Query.Bool(new BoolQuery() { MustNot = new Query[] { /* the Terms query above */ } });
+```
+
+### Exists / IsNull / IsNotNull
+
+```csharp
+// exists
+return Query.Exists(new ExistsQuery { Field = "someField" });
+
+// is null (no value)
+return Query.Bool(new BoolQuery() { MustNot = new Query[] { Query.Exists(new ExistsQuery { Field = "someField" }) } });
+```
+
+### Boolean composition (AND / OR / NOT)
+
+```csharp
+// AND
+return Query.Bool(new BoolQuery() { Must = new Query[] { q1, q2 } });
+
+// OR
+return Query.Bool(new BoolQuery() { Should = new Query[] { q1, q2 } });
+
+// NOT
+return Query.Bool(new BoolQuery() { MustNot = new Query[] { qNot } });
+```
+
+Helper pattern when combining many clauses:
+
+```csharp
+public static Query And(IReadOnlyCollection<Query> queries)
+{
+    if (queries.Count == 0) return new MatchAllQuery();
+    if (queries.Count == 1) return queries.Single();
+    return Query.Bool(new BoolQuery { Must = queries.ToArray() });
+}
+```
+
+## Nested queries
+
+- Build nested inner conditions into a Query (or Bool), then wrap with `NestedQuery` and set `Path`.
+
+```csharp
+var inner = Query.Bool(new BoolQuery { Must = new Query[] { /* inner conditions */ } });
+var nested = new NestedQuery { Path = "items", Query = inner };
+return nested;
+```
+
+## Dual-path (direct field + nested) — combine with OR
+
+When a property can exist either as a top-level field or inside a nested array, build both queries and `Should` them:
+
+```csharp
+var direct = Query.Term(new TermQuery("field.raw") { Value = v });
+var nested = new NestedQuery { Path = "nested", Query = Query.Bool(new BoolQuery { Must = new [] { /* path filter, name, value */ } }) };
+return Query.Bool(new BoolQuery { Should = new Query[] { direct, nested } });
+```
+
+## Implementation tips
+
+- Prefer building small `Query` pieces and combine them — easier to test and reason about.
+- Normalize values for case-insensitive checks (e.g. `.ToLower()` when querying `.lowercase` fields).
+- Use `Match` for analyzed / full-text search and `Term` for exact matches.
+- When building `TermsQuery`, prefer `FieldValue.String(...)` to avoid type ambiguity.
+- For complex nested filters, ensure the nested `Path` exactly matches the mapping.
+- Use `BoolQuery` arrays (Must/Should/MustNot) and return a `MatchAllQuery` for empty conjunctions.
+
+
+---
+
