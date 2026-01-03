@@ -64,6 +64,7 @@ public class VectorSearchResult
     /// <remarks>
     /// This is optional and may not be populated by all implementations.
     /// Including the embedding can be useful for re-ranking or additional similarity calculations.
+    /// The default value is <see cref="ReadOnlyMemory{T}.Empty"/> when not set.
     /// </remarks>
     public ReadOnlyMemory<float> Embedding { get; set; }
 }

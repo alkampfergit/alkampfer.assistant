@@ -51,6 +51,12 @@ public class VectorStoreQueryResult
     public VectorSearchResult? FirstResult => Results.Count > 0 ? Results[0] : null;
 
     /// <summary>
+    /// Gets the embedding from the first result, or an empty memory if there are no results.
+    /// Convenience property for single-result queries.
+    /// </summary>
+    public ReadOnlyMemory<float> FirstEmbedding => Results.Count > 0 ? Results[0].Embedding : ReadOnlyMemory<float>.Empty;
+
+    /// <summary>
     /// Gets or sets optional query execution metadata.
     /// </summary>
     /// <remarks>
@@ -62,6 +68,7 @@ public class VectorStoreQueryResult
     /// <item><description>Debug information</description></item>
     /// </list>
     /// The specific metadata fields depend on the vector store implementation.
+    /// This property is typically set by the query executor implementation after query execution.
     /// </remarks>
     public Dictionary<string, object>? QueryMetadata { get; set; }
 }
