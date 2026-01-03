@@ -17,77 +17,14 @@ namespace Alkampfer.Assistant.ElasticSearch;
 /// <summary>
 /// Provides Elasticsearch indexing operations for VectorRecord with resilience and batch support.
 /// </summary>
-public class ElasticIndexer : IVectorIndexer
+public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
 {
-    private readonly ElasticSearchConfiguration _config;
-    private readonly ElasticsearchClient _client;
-    private readonly ResiliencePipeline _resiliencePipeline;
-
     /// <summary>
     /// Initializes a new instance of the ElasticIndexer class.
     /// </summary>
     /// <param name="config">The Elasticsearch configuration.</param>
-    public ElasticIndexer(ElasticSearchConfiguration config)
+    public ElasticIndexer(ElasticSearchConfiguration config) : base(config)
     {
-        _config = config ?? throw new ArgumentNullException(nameof(config));
-
-        // Configure Elasticsearch client
-        var settings = new ElasticsearchClientSettings(new Uri(_config.Address));
-
-        if (!string.IsNullOrEmpty(_config.Username) && !string.IsNullOrEmpty(_config.Password))
-        {
-            settings.Authentication(new BasicAuthentication(_config.Username, _config.Password));
-        }
-
-        _client = new ElasticsearchClient(settings);
-
-        // Configure resilience pipeline with exponential backoff
-        _resiliencePipeline = new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                MaxRetryAttempts = _config.MaxRetries,
-                Delay = TimeSpan.FromSeconds(_config.InitialRetryDelaySeconds),
-                BackoffType = DelayBackoffType.Exponential,
-                ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>()
-                    .Handle<TaskCanceledException>()
-            })
-            .Build();
-    }
-
-    /// <summary>
-    /// Ensures that an index exists with the correct mapping for VectorRecord.
-    /// If the index does not exist, it will be created with the appropriate configuration.
-    /// </summary>
-    /// <param name="indexName">The name of the index to ensure.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="ArgumentException">Thrown when the index name is invalid.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when index creation fails.</exception>
-    public async Task EnsureIndexMappingAsync(string indexName, CancellationToken cancellationToken = default)
-    {
-        ElasticSearchConfiguration.ValidateIndexName(indexName);
-
-        // Check if index exists
-        var existsResponse = await _client.Indices.ExistsAsync(indexName, cancellationToken);
-
-        if (existsResponse.Exists)
-        {
-            return; // Index already exists
-        }
-
-        // Create index with mapping
-        var createRequest = new CreateIndexRequest(indexName)
-        {
-            Settings = ElasticVectorRecordMapping.GetIndexSettings(_config.ShardNumber, _config.ReplicaNumber),
-            Mappings = ElasticVectorRecordMapping.GetTypeMapping()
-        };
-
-        var createResponse = await _client.Indices.CreateAsync(createRequest, cancellationToken);
-
-        if (!createResponse.IsValidResponse)
-        {
-            throw new InvalidOperationException(
-                $"Failed to create index '{indexName}': {createResponse.DebugInformation}");
-        }
     }
 
     /// <summary>
