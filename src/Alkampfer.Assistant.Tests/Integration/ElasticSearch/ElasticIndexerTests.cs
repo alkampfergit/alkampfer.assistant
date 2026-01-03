@@ -451,4 +451,153 @@ public class ElasticIndexerTests : IAsyncDisposable
         Assert.Equal(longText, retrieved!.Text);
         Assert.Equal(450, retrieved.GetMetadataAsInt("word_count"));
     }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithSingleRecord_DeletesSuccessfully()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var record = VectorRecord.Create("test-delete-1", "doc-to-delete")
+            .WithMetadata("category", "test");
+
+        await _indexer.IndexRecordsAsync(indexName, new[] { record });
+        await Task.Delay(1000); // Wait for indexing
+
+        // Verify record exists
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-delete-1");
+        Assert.NotNull(retrieved);
+
+        // Delete by DocumentId
+        var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "doc-to-delete");
+
+        Assert.Equal(1, deletedCount);
+
+        // Verify record is deleted
+        var afterDelete = await _indexer.GetRecordAsync(indexName, "test-delete-1");
+        Assert.Null(afterDelete);
+    }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithMultipleRecords_DeletesAll()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        // Create multiple records with the same DocumentId
+        var records = new[]
+        {
+            VectorRecord.Create("record-1", "shared-doc-id").WithMetadata("index", 1),
+            VectorRecord.Create("record-2", "shared-doc-id").WithMetadata("index", 2),
+            VectorRecord.Create("record-3", "shared-doc-id").WithMetadata("index", 3),
+            VectorRecord.Create("record-4", "different-doc-id").WithMetadata("index", 4)
+        };
+
+        await _indexer.IndexRecordsAsync(indexName, records);
+        await Task.Delay(1000); // Wait for indexing
+
+        // Verify all records exist
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-1"));
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-2"));
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-3"));
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-4"));
+
+        // Delete by DocumentId
+        var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "shared-doc-id");
+
+        Assert.Equal(3, deletedCount);
+
+        // Verify records with shared-doc-id are deleted
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "record-1"));
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "record-2"));
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "record-3"));
+
+        // Verify record with different DocumentId still exists
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-4"));
+    }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithNonExistentDocumentId_ReturnsZero()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var record = VectorRecord.Create("test-1", "existing-doc")
+            .WithMetadata("data", "value");
+
+        await _indexer.IndexRecordsAsync(indexName, new[] { record });
+        await Task.Delay(1000); // Wait for indexing
+
+        // Try to delete non-existent DocumentId
+        var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "non-existent-doc-id");
+
+        Assert.Equal(0, deletedCount);
+
+        // Verify original record still exists
+        var retrieved = await _indexer.GetRecordAsync(indexName, "test-1");
+        Assert.NotNull(retrieved);
+    }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithEmptyDocumentId_ThrowsArgumentException()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(
+            () => _indexer.DeleteByDocumentIdAsync(indexName, ""));
+
+        Assert.Contains("DocumentId", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithNullDocumentId_ThrowsArgumentException()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(
+            () => _indexer.DeleteByDocumentIdAsync(indexName, null!));
+
+        Assert.Contains("DocumentId", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteByDocumentIdAsync_WithManyRecords_DeletesAllMatching()
+    {
+        var indexName = CreateTestIndex();
+        await _indexer.EnsureIndexMappingAsync(indexName);
+
+        // Create many records with the same DocumentId
+        var recordsToDelete = Enumerable.Range(1, 100)
+            .Select(i => VectorRecord.Create($"bulk-delete-{i}", "bulk-doc-id")
+                .WithMetadata("index", i))
+            .ToList();
+
+        // Create some records with different DocumentId
+        var recordsToKeep = Enumerable.Range(1, 50)
+            .Select(i => VectorRecord.Create($"keep-{i}", "keep-doc-id")
+                .WithMetadata("index", i))
+            .ToList();
+
+        var allRecords = recordsToDelete.Concat(recordsToKeep).ToList();
+
+        await _indexer.IndexRecordsAsync(indexName, allRecords);
+        await Task.Delay(1500); // Wait for indexing (longer for more records)
+
+        // Delete by DocumentId
+        var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "bulk-doc-id");
+
+        Assert.Equal(100, deletedCount);
+
+        // Verify a few deleted records
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "bulk-delete-1"));
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "bulk-delete-50"));
+        Assert.Null(await _indexer.GetRecordAsync(indexName, "bulk-delete-100"));
+
+        // Verify a few kept records
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "keep-1"));
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "keep-25"));
+        Assert.NotNull(await _indexer.GetRecordAsync(indexName, "keep-50"));
+    }
 }

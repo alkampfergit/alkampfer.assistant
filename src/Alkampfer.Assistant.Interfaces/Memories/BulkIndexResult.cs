@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Alkampfer.Assistant.ElasticSearch;
+namespace Alkampfer.Assistant.Interfaces.Memories;
 
 /// <summary>
 /// Represents the result of a bulk indexing operation.

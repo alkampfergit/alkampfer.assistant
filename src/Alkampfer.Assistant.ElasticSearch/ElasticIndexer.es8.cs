@@ -17,7 +17,7 @@ namespace Alkampfer.Assistant.ElasticSearch;
 /// <summary>
 /// Provides Elasticsearch indexing operations for VectorRecord with resilience and batch support.
 /// </summary>
-public class ElasticIndexer
+public class ElasticIndexer : IVectorIndexer
 {
     private readonly ElasticSearchConfiguration _config;
     private readonly ElasticsearchClient _client;
@@ -225,6 +225,47 @@ public class ElasticIndexer
             System.Text.Json.JsonSerializer.Serialize(response.Source));
 
         return VectorRecordExtensions.FromJsonElement(jsonDoc.RootElement);
+    }
+
+    /// <summary>
+    /// Deletes all records with the specified DocumentId from the index.
+    /// </summary>
+    /// <param name="indexName">The name of the index to delete from.</param>
+    /// <param name="documentId">The DocumentId of records to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of records deleted.</returns>
+    public async Task<long> DeleteByDocumentIdAsync(
+        string indexName,
+        string documentId,
+        CancellationToken cancellationToken = default)
+    {
+        ElasticSearchConfiguration.ValidateIndexName(indexName);
+
+        if (string.IsNullOrEmpty(documentId))
+        {
+            throw new ArgumentException("DocumentId cannot be null or empty.", nameof(documentId));
+        }
+
+        // Use DeleteByQuery to delete all documents matching the DocumentId
+        var response = await _resiliencePipeline.ExecuteAsync(
+            async ct => await _client.DeleteByQueryAsync(indexName, d => d
+                .Query(q => q
+                    .Term(t => t
+                        .Field("documentId")
+                        .Value(documentId)
+                    )
+                )
+                .Refresh(true), // Refresh immediately so changes are visible
+                ct),
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Failed to delete records with DocumentId '{documentId}' from index '{indexName}': {response.DebugInformation}");
+        }
+
+        return response.Deleted ?? 0;
     }
 
     /// <summary>
