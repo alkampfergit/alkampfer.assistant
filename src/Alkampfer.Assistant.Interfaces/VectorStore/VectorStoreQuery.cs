@@ -8,6 +8,9 @@ namespace Alkampfer.Assistant.Interfaces.VectorStore;
 /// </summary>
 public class VectorStoreQuery
 {
+    private int _maxResults = 10;
+    private float _minimumScore = 0.0f;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="VectorStoreQuery"/> class.
     /// </summary>
@@ -31,18 +34,42 @@ public class VectorStoreQuery
     /// Gets or sets the maximum number of results to return.
     /// </summary>
     /// <remarks>
-    /// Default is 10 if not specified.
+    /// Default is 10 if not specified. Must be greater than 0.
     /// </remarks>
-    public int MaxResults { get; set; } = 10;
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when value is less than or equal to 0.</exception>
+    public int MaxResults 
+    { 
+        get => _maxResults;
+        set
+        {
+            if (value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "MaxResults must be greater than 0.");
+            }
+            _maxResults = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the minimum similarity score threshold (0.0 to 1.0).
     /// Results below this threshold will be excluded.
     /// </summary>
     /// <remarks>
-    /// Default is 0.0 (no threshold).
+    /// Default is 0.0 (no threshold). Must be between 0.0 and 1.0.
     /// </remarks>
-    public float MinimumScore { get; set; } = 0.0f;
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when value is not between 0.0 and 1.0.</exception>
+    public float MinimumScore 
+    { 
+        get => _minimumScore;
+        set
+        {
+            if (value < 0.0f || value > 1.0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "MinimumScore must be between 0.0 and 1.0.");
+            }
+            _minimumScore = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets optional metadata filters to apply to the query.
