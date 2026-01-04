@@ -1,17 +1,17 @@
 ---
-applyTo: '**/*.es8.cs'
+applyTo: '**/*.es9.cs'
 ---
 
 ## Overview & Context
 
-This guide provides comprehensive instructions for GitHub Copilot to assist with Elasticsearch 8 .NET client (Elastic.Clients.Elasticsearch) development, with special emphasis on:
+This guide provides comprehensive instructions for GitHub Copilot to assist with Elasticsearch 9 .NET client (Elastic.Clients.Elasticsearch) development, with special emphasis on:
 - Field mapping strategies and patterns
 - Dynamic mapping configuration
 - Dense vector mapping for vector search and kNN operations
 - Modern C# async patterns (async/await)
 - FluentAPI descriptor pattern
 
-**Target Library:** `Elastic.Clients.Elasticsearch` (v8.x)  
+**Target Library:** `Elastic.Clients.Elasticsearch` (v9.x)  
 **Framework:** .NET 10.0+  
 **Language:** C# with modern language features
 
@@ -45,8 +45,8 @@ You should verify if the index exists, if not create and inlude the mapping (see
         request.Settings = new IndexSettings();
         request.Settings.NumberOfReplicas = _config.NumberOfReplicas;
         request.Settings.NumberOfShards = _config.NumberOfShards;
-        request.Settings.Analysis = OmniSearchIndexMapper8.CreateAnalysisConfiguration();
-        request.Mappings = OmniSearchIndexMapper8.CreateMappingConfiguration();
+        request.Settings.Analysis = OmniSearchIndexMapper9.CreateAnalysisConfiguration();
+        request.Mappings = OmniSearchIndexMapper9.CreateMappingConfiguration();
 
         var typeMapping = new TypeMapping();
         typeMapping.Source = new SourceField() { Enabled = true };
@@ -71,9 +71,9 @@ Elastic needs mapping, here is how you can map property of an index.
 
 ## Field Mapping Fundamentals
 
-# Elasticsearch 8 .NET Mapping Guide
+# Elasticsearch 9 .NET Mapping Guide
 
-Library: Elastic.Clients.Elasticsearch v8.x
+Library: Elastic.Clients.Elasticsearch v9.x
 Pattern: TypeMapping + Properties with direct property assignment
 
 ## Basic Field Mapping
@@ -410,9 +410,9 @@ Dynamic Template Matching:
 
 # Queries
 
-# Elasticsearch Query Guide (Elastic.Clients.Elasticsearch v8)
+# Elasticsearch Query Guide (Elastic.Clients.Elasticsearch v9)
 
-A focused, implementation-oriented reference for building Elasticsearch queries using the Elastic.Clients.Elasticsearch v8 types. Keep this short and use it as a checklist or snippet bank when translating high-level filter tokens to ES queries.
+A focused, implementation-oriented reference for building Elasticsearch queries using the Elastic.Clients.Elasticsearch v9 types. Keep this short and use it as a checklist or snippet bank when translating high-level filter tokens to ES queries.
 
 ## Core rules
 

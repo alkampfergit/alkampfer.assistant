@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,19 +20,4 @@ public interface IVectorQueryExecutor
         IVectorQuery query,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Executes a KNN (K-Nearest Neighbors) search for vector similarity.
-    /// </summary>
-    /// <param name="indexName">The name of the index to search.</param>
-    /// <param name="vectorKey">The key/name of the vector field to search.</param>
-    /// <param name="queryVector">The query vector to find similar vectors for.</param>
-    /// <param name="topK">The maximum number of results to return.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of VectorSearchResult ordered by similarity (highest first).</returns>
-    Task<IReadOnlyList<VectorSearchResult>> ExecuteKnnSearchAsync(
-        string indexName,
-        string vectorKey,
-        float[] queryVector,
-        int topK,
-        CancellationToken cancellationToken = default);
 }
