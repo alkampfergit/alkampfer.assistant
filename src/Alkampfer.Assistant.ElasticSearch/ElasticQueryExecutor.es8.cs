@@ -12,7 +12,7 @@ namespace Alkampfer.Assistant.ElasticSearch;
 /// <summary>
 /// Provides Elasticsearch query operations for VectorRecord using DisMax pattern.
 /// </summary>
-public class ElasticQueryExecutor : ElasticBaseClient
+public class ElasticQueryExecutor : ElasticBaseClient, IVectorQueryExecutor
 {
     /// <summary>
     /// Initializes a new instance of the ElasticQueryExecutor class.
