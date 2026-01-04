@@ -204,8 +204,8 @@ public class ElasticIndexerTests : IAsyncDisposable
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
 
-        // Wait a bit for Elasticsearch to index the document
-        await Task.Delay(1000);
+        // Refresh index to make documents immediately searchable
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-get-1");
 
@@ -249,7 +249,7 @@ public class ElasticIndexerTests : IAsyncDisposable
             .WithMetadata("date_field", testDate);
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "roundtrip-1");
 
@@ -325,7 +325,7 @@ public class ElasticIndexerTests : IAsyncDisposable
             .WithMetadata("priority", 5);
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-2");
 
@@ -355,7 +355,7 @@ public class ElasticIndexerTests : IAsyncDisposable
             .WithMetadata("date_field", testDate);
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "roundtrip-text-1");
 
@@ -390,7 +390,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.SuccessfulRecords);
 
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-null-1");
 
@@ -414,7 +414,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.SuccessfulRecords);
 
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-empty-1");
 
@@ -443,7 +443,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.SuccessfulRecords);
 
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-text-long-1");
 
@@ -462,7 +462,7 @@ public class ElasticIndexerTests : IAsyncDisposable
             .WithMetadata("category", "test");
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         // Verify record exists
         var retrieved = await _indexer.GetRecordAsync(indexName, "test-delete-1");
@@ -494,7 +494,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         };
 
         await _indexer.IndexRecordsAsync(indexName, records);
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         // Verify all records exist
         Assert.NotNull(await _indexer.GetRecordAsync(indexName, "record-1"));
@@ -526,7 +526,7 @@ public class ElasticIndexerTests : IAsyncDisposable
             .WithMetadata("data", "value");
 
         await _indexer.IndexRecordsAsync(indexName, new[] { record });
-        await Task.Delay(1000); // Wait for indexing
+        await _indexer.RefreshIndexAsync(indexName);
 
         // Try to delete non-existent DocumentId
         var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "non-existent-doc-id");
@@ -583,7 +583,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         var allRecords = recordsToDelete.Concat(recordsToKeep).ToList();
 
         await _indexer.IndexRecordsAsync(indexName, allRecords);
-        await Task.Delay(1500); // Wait for indexing (longer for more records)
+        await _indexer.RefreshIndexAsync(indexName);
 
         // Delete by DocumentId
         var deletedCount = await _indexer.DeleteByDocumentIdAsync(indexName, "bulk-doc-id");

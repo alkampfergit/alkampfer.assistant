@@ -85,7 +85,11 @@ public static class VectorRecordExtensions
             }
         }
 
-        // Note: Vector fields are not included yet (future enhancement)
+        // Vector fields - stored directly without prefix
+        foreach (var (key, vector) in record.Vectors)
+        {
+            obj[key] = vector;
+        }
 
         return obj;
     }

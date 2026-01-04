@@ -51,7 +51,10 @@ public abstract class ElasticBaseClient
     /// <summary>
     /// Ensures that an index exists with the correct mapping for VectorRecord.
     /// </summary>
-    public async Task EnsureIndexMappingAsync(string indexName, CancellationToken cancellationToken = default)
+    public async Task EnsureIndexMappingAsync(
+        string indexName,
+        IEnumerable<VectorFieldConfiguration>? vectorFields = null,
+        CancellationToken cancellationToken = default)
     {
         ElasticSearchConfiguration.ValidateIndexName(indexName);
 
@@ -65,7 +68,7 @@ public abstract class ElasticBaseClient
         var createRequest = new Elastic.Clients.Elasticsearch.IndexManagement.CreateIndexRequest(indexName)
         {
             Settings = ElasticVectorRecordMapping.GetIndexSettings(_config.ShardNumber, _config.ReplicaNumber),
-            Mappings = ElasticVectorRecordMapping.GetTypeMapping()
+            Mappings = ElasticVectorRecordMapping.GetTypeMapping(vectorFields)
         };
 
         var createResponse = await _client.Indices.CreateAsync(createRequest, cancellationToken);

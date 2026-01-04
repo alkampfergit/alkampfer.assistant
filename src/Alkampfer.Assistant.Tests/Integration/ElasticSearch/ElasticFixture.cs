@@ -81,8 +81,8 @@ public class ElasticFixture : IAsyncLifetime
 			VectorRecord.Create($"p{i}", $"doc-paging-{i}").WithText($"Document {i}")));
 
 		await Indexer.IndexRecordsAsync(TestIndexName, records);
-		// Wait for Elasticsearch to make the docs searchable
-		await Task.Delay(1500);
+		// Refresh index to make documents immediately searchable
+		await Indexer.RefreshIndexAsync(TestIndexName);
 	}
 
 	public async Task DisposeAsync()

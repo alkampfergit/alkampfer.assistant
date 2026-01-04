@@ -19,12 +19,22 @@ namespace Alkampfer.Assistant.ElasticSearch;
 /// </summary>
 public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
 {
+    private readonly Dictionary<string, Dictionary<string, VectorFieldConfiguration>> _indexVectorFields = new();
+
     /// <summary>
     /// Initializes a new instance of the ElasticIndexer class.
     /// </summary>
     /// <param name="config">The Elasticsearch configuration.</param>
     public ElasticIndexer(ElasticSearchConfiguration config) : base(config)
     {
+    }
+
+    /// <summary>
+    /// Ensures that an index exists with the correct mapping for VectorRecord.
+    /// </summary>
+    public async Task EnsureIndexMappingAsync(string indexName, CancellationToken cancellationToken = default)
+    {
+        await EnsureIndexMappingAsync(indexName, GetVectorFieldConfigurations(indexName), cancellationToken);
     }
 
     /// <summary>
@@ -220,6 +230,101 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
         {
             throw new InvalidOperationException(
                 $"Failed to delete index '{indexName}': {response.DebugInformation}");
+        }
+    }
+    /// <summary>
+    /// Ensures that a vector field mapping exists for the specified index with the given configuration.
+    /// </summary>
+    public async Task EnsureVectorFieldMappingAsync(
+        string indexName,
+        string vectorFieldName,
+        int dimensions,
+        string similarity = "cosine",
+        bool indexVectors = true,
+        CancellationToken cancellationToken = default)
+    {
+        ElasticSearchConfiguration.ValidateIndexName(indexName);
+
+        if (string.IsNullOrEmpty(vectorFieldName))
+        {
+            throw new ArgumentException("Vector field name cannot be null or empty.", nameof(vectorFieldName));
+        }
+
+        if (dimensions <= 0)
+        {
+            throw new ArgumentException("Dimensions must be greater than 0.", nameof(dimensions));
+        }
+
+        // Store vector field configuration
+        if (!_indexVectorFields.ContainsKey(indexName))
+        {
+            _indexVectorFields[indexName] = new Dictionary<string, VectorFieldConfiguration>();
+        }
+
+        var vectorConfig = new VectorFieldConfiguration
+        {
+            FieldName = vectorFieldName,
+            Dimensions = dimensions,
+            Similarity = similarity,
+            Index = indexVectors
+        };
+
+        _indexVectorFields[indexName][vectorFieldName] = vectorConfig;
+
+        // Check if index exists
+        var existsResponse = await _client.Indices.ExistsAsync(indexName, cancellationToken);
+
+        if (!existsResponse.Exists)
+        {
+            // Create index with vector field mapping
+            await EnsureIndexMappingAsync(indexName, GetVectorFieldConfigurations(indexName), cancellationToken);
+        }
+        else
+        {
+            // Update existing index mapping
+            var mapping = ElasticVectorRecordMapping.GetTypeMapping(new[] { vectorConfig });
+            var putMappingRequest = new PutMappingRequest(indexName)
+            {
+                Properties = mapping.Properties
+            };
+            var putMappingResponse = await _client.Indices.PutMappingAsync(putMappingRequest, cancellationToken);
+
+            if (!putMappingResponse.IsValidResponse)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to update mapping for index '{indexName}': {putMappingResponse.DebugInformation}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all vector field configurations for an index.
+    /// </summary>
+    private IEnumerable<VectorFieldConfiguration> GetVectorFieldConfigurations(string indexName)
+    {
+        if (_indexVectorFields.TryGetValue(indexName, out var fields))
+        {
+            return fields.Values;
+        }
+        return Enumerable.Empty<VectorFieldConfiguration>();
+    }
+
+    /// <summary>
+    /// Refreshes an index to make all recent changes immediately available for search.
+    /// This is primarily useful for testing to avoid Thread.Sleep calls.
+    /// </summary>
+    /// <param name="indexName">The name of the index to refresh.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task RefreshIndexAsync(string indexName, CancellationToken cancellationToken = default)
+    {
+        ElasticSearchConfiguration.ValidateIndexName(indexName);
+
+        var response = await _client.Indices.RefreshAsync(indexName, cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Failed to refresh index '{indexName}': {response.DebugInformation}");
         }
     }
 }
