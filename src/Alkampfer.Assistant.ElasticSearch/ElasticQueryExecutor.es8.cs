@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ public class ElasticQueryExecutor : ElasticBaseClient
     /// <returns>A VectorQueryResult containing matching records and metadata.</returns>
     public async Task<VectorQueryResult> ExecuteQueryAsync(
         string indexName,
-        VectorQuery query,
+        IVectorQuery query,
         CancellationToken cancellationToken = default)
     {
         ElasticSearchConfiguration.ValidateIndexName(indexName);
@@ -83,9 +82,82 @@ public class ElasticQueryExecutor : ElasticBaseClient
     }
 
     /// <summary>
+    /// Executes a KNN (K-Nearest Neighbors) search for vector similarity.
+    /// </summary>
+    /// <param name="indexName">The name of the index to search.</param>
+    /// <param name="vectorKey">The key/name of the vector field to search.</param>
+    /// <param name="queryVector">The query vector to find similar vectors for.</param>
+    /// <param name="topK">The maximum number of results to return.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A list of VectorSearchResult ordered by similarity (highest first).</returns>
+    public async Task<IReadOnlyList<VectorSearchResult>> ExecuteKnnSearchAsync(
+        string indexName,
+        string vectorKey,
+        float[] queryVector,
+        int topK,
+        CancellationToken cancellationToken = default)
+    {
+        ElasticSearchConfiguration.ValidateIndexName(indexName);
+
+        if (string.IsNullOrEmpty(vectorKey))
+            throw new ArgumentException("VectorKey cannot be null or empty.", nameof(vectorKey));
+        if (queryVector == null || queryVector.Length == 0)
+            throw new ArgumentException("QueryVector cannot be null or empty.", nameof(queryVector));
+        if (topK <= 0)
+            throw new ArgumentException("TopK must be greater than 0.", nameof(topK));
+
+        // Create KNN search request
+        var searchRequest = new SearchRequest(indexName)
+        {
+            Knn = new List<KnnSearch>
+            {
+                new KnnSearch
+                {
+                    Field = $"v_{vectorKey}",
+                    QueryVector = queryVector,
+                    K = topK,
+                    NumCandidates = topK * 2 // Use more candidates for better recall
+                }
+            },
+            Size = topK
+        };
+
+        // Execute search with resilience
+        var response = await _resiliencePipeline.ExecuteAsync(
+            async ct => await _client.SearchAsync<object>(searchRequest, ct),
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"KNN search execution failed: {response.DebugInformation}");
+        }
+
+        // Convert results to VectorSearchResult
+        var results = new List<VectorSearchResult>();
+        foreach (var hit in response.Hits)
+        {
+            if (hit.Source != null)
+            {
+                var jsonDoc = JsonDocument.Parse(
+                    JsonSerializer.Serialize(hit.Source));
+                var record = VectorRecordExtensions.FromJsonElement(jsonDoc.RootElement);
+
+                results.Add(new VectorSearchResult(
+                    record.Id,
+                    record.DocumentId,
+                    hit.Score ?? 0.0f,
+                    record.Metadata));
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Builds an Elasticsearch Query from a VectorQuery using DisMax pattern.
     /// </summary>
-    private Query BuildElasticQuery(VectorQuery query)
+    private Query BuildElasticQuery(IVectorQuery query)
     {
         var queries = new List<Query>();
 
@@ -103,10 +175,10 @@ public class ElasticQueryExecutor : ElasticBaseClient
             queries.Add(disMaxQuery);
         }
 
-        // Add filters
+        // Add filters using the converter
         foreach (var filter in query.Filters)
         {
-            queries.Add(filter.ToElasticQuery());
+            queries.Add(ElasticQueryFilterConverter.ToElasticQuery(filter));
         }
 
         // Combine all queries with AND logic

@@ -1,8 +1,32 @@
 using System.Collections.Generic;
-using System.Linq;
-using Alkampfer.Assistant.Interfaces.Memories;
 
-namespace Alkampfer.Assistant.ElasticSearch;
+namespace Alkampfer.Assistant.Interfaces.Memories;
+
+/// <summary>
+/// Interface for vector query results.
+/// </summary>
+public interface IVectorQueryResult
+{
+    /// <summary>
+    /// Gets the collection of records returned by the query.
+    /// </summary>
+    IReadOnlyList<VectorRecord> Records { get; }
+
+    /// <summary>
+    /// Gets the total number of matching records.
+    /// </summary>
+    long TotalCount { get; }
+
+    /// <summary>
+    /// Gets whether there are more results available.
+    /// </summary>
+    bool HasMore { get; }
+
+    /// <summary>
+    /// Gets the query execution time in milliseconds.
+    /// </summary>
+    long ExecutionTimeMs { get; }
+}
 
 /// <summary>
 /// Represents an immutable query result containing VectorRecords and metadata.
@@ -49,30 +73,4 @@ public class VectorQueryResult : IVectorQueryResult
     {
         return new VectorQueryResult([], 0, 0);
     }
-}
-
-/// <summary>
-/// Interface for vector query results.
-/// </summary>
-public interface IVectorQueryResult
-{
-    /// <summary>
-    /// Gets the collection of records returned by the query.
-    /// </summary>
-    IReadOnlyList<VectorRecord> Records { get; }
-
-    /// <summary>
-    /// Gets the total number of matching records.
-    /// </summary>
-    long TotalCount { get; }
-
-    /// <summary>
-    /// Gets whether there are more results available.
-    /// </summary>
-    bool HasMore { get; }
-
-    /// <summary>
-    /// Gets the query execution time in milliseconds.
-    /// </summary>
-    long ExecutionTimeMs { get; }
 }
