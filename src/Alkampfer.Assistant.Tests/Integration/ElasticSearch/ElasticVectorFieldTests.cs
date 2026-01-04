@@ -76,9 +76,7 @@ public class ElasticVectorFieldTests : IAsyncDisposable
             .WithMetadata("description", "Test record with vector");
 
         var result = await _indexer.IndexRecordsAsync(_testIndexName, new[] { record });
-        var errors = result.Errors != null && result.Errors.Any()
-            ? string.Join(" | ", result.Errors.Select(e => e.ErrorMessage))
-            : "(no error details)";
+        var errors = result.GetErrorsAsString();
         Assert.True(result.IsSuccess, $"Indexing failed. Successful={result.SuccessfulRecords}, Failed={result.FailedRecords}, Errors: {errors}");
         Assert.Equal(1, result.SuccessfulRecords);
     }
@@ -93,11 +91,13 @@ public class ElasticVectorFieldTests : IAsyncDisposable
         const int dimensions = 768;
 
         // Act - add vector field to existing index
+        // Note: Using l2_norm similarity instead of dot_product because dot_product
+        // requires unit-length (normalized) vectors, which adds complexity to the test
         await _indexer.EnsureVectorFieldMappingAsync(
             _testIndexName,
             vectorFieldName,
             dimensions,
-            similarity: "dot_product",
+            similarity: "l2_norm",
             indexVectors: true);
 
         // Assert - verify we can index a record with this vector
@@ -107,9 +107,7 @@ public class ElasticVectorFieldTests : IAsyncDisposable
             .WithMetadata("title", "Document with embedding");
 
         var result = await _indexer.IndexRecordsAsync(_testIndexName, new[] { record });
-        var errors = result.Errors != null && result.Errors.Any()
-            ? string.Join(" | ", result.Errors.Select(e => e.ErrorMessage))
-            : "(no error details)";
+        var errors = result.GetErrorsAsString();
         Assert.True(result.IsSuccess, $"Indexing failed. Successful={result.SuccessfulRecords}, Failed={result.FailedRecords}, Errors: {errors}");
         Assert.Equal(1, result.SuccessfulRecords);
     }
@@ -295,9 +293,7 @@ public class ElasticVectorFieldTests : IAsyncDisposable
 
         // Act - save record without vector
         var result1 = await _indexer.IndexRecordsAsync(_testIndexName, new[] { recordWithoutVector });
-        var errors1 = result1.Errors != null && result1.Errors.Any()
-            ? string.Join(" | ", result1.Errors.Select(e => e.ErrorMessage))
-            : "(no error details)";
+        var errors1 = result1.GetErrorsAsString();
         Assert.True(result1.IsSuccess, $"Indexing (initial) failed. Successful={result1.SuccessfulRecords}, Failed={result1.FailedRecords}, Errors: {errors1}");
         Assert.Equal(1, result1.SuccessfulRecords);
 
@@ -315,9 +311,7 @@ public class ElasticVectorFieldTests : IAsyncDisposable
 
         // Act - save record with vector
         var result2 = await _indexer.IndexRecordsAsync(_testIndexName, new[] { recordWithVector });
-        var errors2 = result2.Errors != null && result2.Errors.Any()
-            ? string.Join(" | ", result2.Errors.Select(e => e.ErrorMessage))
-            : "(no error details)";
+        var errors2 = result2.GetErrorsAsString();
         Assert.True(result2.IsSuccess, $"Indexing (with vector) failed. Successful={result2.SuccessfulRecords}, Failed={result2.FailedRecords}, Errors: {errors2}");
         Assert.Equal(1, result2.SuccessfulRecords);
 

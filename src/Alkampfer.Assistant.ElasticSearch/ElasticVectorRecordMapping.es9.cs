@@ -171,12 +171,12 @@ public static class ElasticVectorRecordMapping
         }
         mapping.DynamicTemplates = templateCollection;
 
-        // Add explicit vector field mappings
+        // Add explicit vector field mappings with v_ prefix
         if (vectorFields != null)
         {
             foreach (var vectorConfig in vectorFields)
             {
-                mapping.Properties[vectorConfig.FieldName] = CreateDenseVectorProperty(vectorConfig);
+                mapping.Properties[$"v_{vectorConfig.FieldName}"] = CreateDenseVectorProperty(vectorConfig);
             }
         }
 

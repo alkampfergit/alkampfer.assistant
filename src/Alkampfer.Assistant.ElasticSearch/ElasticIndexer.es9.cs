@@ -84,12 +84,32 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
         var batchList = batch.ToList();
         var totalRecords = batchList.Count;
 
+        // Get known vector fields from in-memory cache to validate records
+        var knownVectorFields = GetKnownVectorFieldNames(indexName);
+
         // Execute bulk indexing for each record
         var errors = new List<BulkIndexError>();
         var successCount = 0;
-        
+
         foreach (var record in batchList)
         {
+            // Validate that all vector fields in the record are mapped
+            var unmappedVectors = record.Vectors.Keys
+                .Where(vectorField => !knownVectorFields.Contains(vectorField))
+                .ToList();
+
+            if (unmappedVectors.Count > 0)
+            {
+                errors.Add(new BulkIndexError
+                {
+                    RecordId = record.Id,
+                    ErrorMessage = $"Record contains unmapped vector field(s): {string.Join(", ", unmappedVectors)}. " +
+                                   "Use EnsureVectorFieldMappingAsync to create the mapping before indexing.",
+                    StatusCode = null
+                });
+                continue;
+            }
+
             try
             {
                 var doc = record.ToExpandoObjectForIndexing();
@@ -132,6 +152,22 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
     }
 
     /// <summary>
+    /// Gets known vector field names from the in-memory cache.
+    /// </summary>
+    private HashSet<string> GetKnownVectorFieldNames(string indexName)
+    {
+        var vectorFieldNames = new HashSet<string>();
+        if (_indexVectorFields.TryGetValue(indexName, out var cachedFields))
+        {
+            foreach (var fieldName in cachedFields.Keys)
+            {
+                vectorFieldNames.Add(fieldName);
+            }
+        }
+        return vectorFieldNames;
+    }
+
+    /// <summary>
     /// Retrieves a single VectorRecord by ID from the specified index.
     /// </summary>
     /// <param name="indexName">The name of the index to search.</param>
@@ -167,7 +203,7 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
             return null;
         }
 
-        // Deserialize from JsonElement
+        // Deserialize from JsonElement - vector fields are discovered via v_ prefix
         var jsonDoc = System.Text.Json.JsonDocument.Parse(
             System.Text.Json.JsonSerializer.Serialize(response.Source));
 
@@ -266,7 +302,8 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
             FieldName = vectorFieldName,
             Dimensions = dimensions,
             Similarity = similarity,
-            Index = indexVectors
+            Index = indexVectors,
+            
         };
 
         _indexVectorFields[indexName][vectorFieldName] = vectorConfig;
@@ -299,6 +336,7 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
 
     /// <summary>
     /// Gets all vector field configurations for an index.
+    /// The configurations use the v_ prefix for Elasticsearch field names.
     /// </summary>
     private IEnumerable<VectorFieldConfiguration> GetVectorFieldConfigurations(string indexName)
     {

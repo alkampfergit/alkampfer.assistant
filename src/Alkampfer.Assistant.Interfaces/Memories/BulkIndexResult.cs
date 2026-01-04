@@ -35,6 +35,21 @@ public record BulkIndexResult
     public bool IsSuccess => FailedRecords == 0;
 
     /// <summary>
+    /// Returns a single-line string concatenating all errors (including record id and status code if available).
+    /// </summary>
+    /// <param name="separator">Separator used between error messages. Default is " | ".</param>
+    public string GetErrorsAsString(string separator = " | ")
+    {
+        if (Errors == null || Errors.Count == 0) return "(no error details)";
+        return string.Join(separator, Errors.Select(e =>
+        {
+            var codePart = e.StatusCode.HasValue ? $"[{e.StatusCode.Value}]" : string.Empty;
+            var idPart = string.IsNullOrEmpty(e.RecordId) ? string.Empty : $"{e.RecordId}:";
+            return $"{idPart}{codePart}{e.ErrorMessage}";
+        }));
+    }
+
+    /// <summary>
     /// Combines multiple bulk index results into a single result.
     /// </summary>
     /// <param name="results">The collection of results to combine.</param>

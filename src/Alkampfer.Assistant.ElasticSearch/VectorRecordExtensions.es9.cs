@@ -21,6 +21,7 @@ public static class VectorRecordExtensions
     /// - b_ for boolean
     /// - d_ for DateTime (stored as ISO8601 string)
     /// - k_ for keywords (string array, lowercase normalized)
+    /// - v_ for vectors (float arrays)
     /// </summary>
     /// <param name="record">The VectorRecord to convert.</param>
     /// <returns>An IDictionary representing the record for Elasticsearch indexing.</returns>
@@ -85,10 +86,10 @@ public static class VectorRecordExtensions
             }
         }
 
-        // Vector fields - stored directly without prefix
+        // Vector fields - stored with v_ prefix
         foreach (var (key, vector) in record.Vectors)
         {
-            obj[key] = vector;
+            obj[$"v_{key}"] = vector;
         }
 
         return obj;
@@ -211,7 +212,23 @@ public static class VectorRecordExtensions
                     }
                 }
             }
-            // Note: Vector fields will be handled in future enhancement
+            // Parse vector fields with v_ prefix
+            else if (fieldName.StartsWith("v_") && fieldName.Length > 2 && property.Value.ValueKind == JsonValueKind.Array)
+            {
+                var key = fieldName[2..];
+                var vectorValues = new List<float>();
+                foreach (var element in property.Value.EnumerateArray())
+                {
+                    if (element.ValueKind == JsonValueKind.Number && element.TryGetSingle(out var floatValue))
+                    {
+                        vectorValues.Add(floatValue);
+                    }
+                }
+                if (vectorValues.Count > 0)
+                {
+                    record.WithVector(key, vectorValues.ToArray());
+                }
+            }
         }
 
         return record;
