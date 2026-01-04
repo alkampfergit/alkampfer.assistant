@@ -188,4 +188,57 @@ public class VectorQuery : IVectorQuery
         }
         return this;
     }
+
+    /// <summary>
+    /// Adds an OR composite filter combining multiple filters.
+    /// </summary>
+    public IVectorQuery WithOrFilter(params IQueryFilter[] filters)
+    {
+        if (filters != null && filters.Length > 0)
+        {
+            _filters.Add(new OrFilter(filters.ToList()));
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// Adds an AND composite filter combining multiple filters.
+    /// </summary>
+    public IVectorQuery WithAndFilter(params IQueryFilter[] filters)
+    {
+        if (filters != null && filters.Length > 0)
+        {
+            _filters.Add(new AndFilter(filters.ToList()));
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a NOT filter that negates another filter.
+    /// </summary>
+    public IVectorQuery WithNotFilter(IQueryFilter filter)
+    {
+        if (filter != null)
+        {
+            _filters.Add(new NotFilter(filter));
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a filter using the FilterBuilder for complex query construction.
+    /// </summary>
+    public IVectorQuery Where(Func<FilterBuilder, IQueryFilter> buildFilter)
+    {
+        if (buildFilter != null)
+        {
+            var builder = new FilterBuilder();
+            var filter = buildFilter(builder);
+            if (filter != null)
+            {
+                _filters.Add(filter);
+            }
+        }
+        return this;
+    }
 }

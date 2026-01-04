@@ -92,4 +92,24 @@ public interface IVectorQuery
     /// Adds an integer range filter.
     /// </summary>
     IVectorQuery WhereRange(string fieldName, int? from, int? to);
+
+    /// <summary>
+    /// Adds an OR composite filter combining multiple filters.
+    /// </summary>
+    IVectorQuery WithOrFilter(params IQueryFilter[] filters);
+
+    /// <summary>
+    /// Adds an AND composite filter combining multiple filters.
+    /// </summary>
+    IVectorQuery WithAndFilter(params IQueryFilter[] filters);
+
+    /// <summary>
+    /// Adds a NOT filter that negates another filter.
+    /// </summary>
+    IVectorQuery WithNotFilter(IQueryFilter filter);
+
+    /// <summary>
+    /// Adds a filter using the FilterBuilder for complex query construction.
+    /// </summary>
+    IVectorQuery Where(Func<FilterBuilder, IQueryFilter> buildFilter);
 }

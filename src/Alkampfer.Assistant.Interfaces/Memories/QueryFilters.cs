@@ -46,3 +46,29 @@ public record NumericRangeFilter(string FieldName, double? From, double? To) : I
 /// Filter for integer range.
 /// </summary>
 public record IntegerRangeFilter(string FieldName, int? From, int? To) : IQueryFilter;
+
+/// <summary>
+/// Composite filter that combines multiple filters with AND logic.
+/// All child filters must match.
+/// </summary>
+public record AndFilter(IReadOnlyList<IQueryFilter> Filters) : IQueryFilter
+{
+    public string FieldName => string.Empty; // Not applicable for composite filters
+}
+
+/// <summary>
+/// Composite filter that combines multiple filters with OR logic.
+/// At least one child filter must match.
+/// </summary>
+public record OrFilter(IReadOnlyList<IQueryFilter> Filters) : IQueryFilter
+{
+    public string FieldName => string.Empty; // Not applicable for composite filters
+}
+
+/// <summary>
+/// Composite filter that negates another filter (NOT logic).
+/// </summary>
+public record NotFilter(IQueryFilter Filter) : IQueryFilter
+{
+    public string FieldName => string.Empty; // Not applicable for composite filters
+}
