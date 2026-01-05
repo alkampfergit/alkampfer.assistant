@@ -91,4 +91,15 @@ features, PATCH for fixes and clarifications.
 	 affects. The CI pipeline SHOULD run an automated subset of checks (build + tests)
 	 and human reviewers MUST verify principle compliance for complex changes.
 
+## Tests and Validation
+
+We use TDD so if I tell to write a test and you know that the test will fail is perfectly 
+acceptable, so do not write tests that expect exception to be thrown. Test are meant to be
+written to fail first, then the code is written to make them pass.
+
+If the class has no test or unsufficient test, you can write additional tests to cover the missing parts
+and those tests must pass.
+
+After any major change you must ensure that all tests pass. If some test are failing that are not related to the code you written, you can ask to the user what to do (fix them, ignore them, etc).
+
 **Version**: 1.0.2 | **Ratified**: 2025-12-06 | **Last Amended**: 2025-12-29

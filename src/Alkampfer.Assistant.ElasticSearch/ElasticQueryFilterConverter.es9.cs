@@ -27,6 +27,9 @@ public static class ElasticQueryFilterConverter
             DateTimeRangeFilter f => CreateDateTimeRangeQuery(f),
             NumericRangeFilter f => CreateNumericRangeQuery(f),
             IntegerRangeFilter f => CreateIntegerRangeQuery(f),
+            AndFilter f => CreateAndQuery(f),
+            OrFilter f => CreateOrQuery(f),
+            NotFilter f => CreateNotQuery(f),
             _ => throw new NotSupportedException($"Filter type {filter.GetType().Name} is not supported by Elasticsearch.")
         };
     }
@@ -34,30 +37,97 @@ public static class ElasticQueryFilterConverter
     private static Query CreateDateTimeRangeQuery(DateTimeRangeFilter filter)
     {
         var rangeQuery = new DateRangeQuery($"d_{filter.FieldName}");
+        
         if (filter.From.HasValue)
-            rangeQuery.Gte = filter.From.Value;
+        {
+            if (filter.IncludeFrom)
+                rangeQuery.Gte = filter.From.Value;
+            else
+                rangeQuery.Gt = filter.From.Value;
+        }
+        
         if (filter.To.HasValue)
-            rangeQuery.Lte = filter.To.Value;
+        {
+            if (filter.IncludeTo)
+                rangeQuery.Lte = filter.To.Value;
+            else
+                rangeQuery.Lt = filter.To.Value;
+        }
+        
         return rangeQuery;
     }
 
     private static Query CreateNumericRangeQuery(NumericRangeFilter filter)
     {
         var rangeQuery = new NumberRangeQuery($"n_{filter.FieldName}");
+        
         if (filter.From.HasValue)
-            rangeQuery.Gte = filter.From.Value;
+        {
+            if (filter.IncludeFrom)
+                rangeQuery.Gte = filter.From.Value;
+            else
+                rangeQuery.Gt = filter.From.Value;
+        }
+        
         if (filter.To.HasValue)
-            rangeQuery.Lte = filter.To.Value;
+        {
+            if (filter.IncludeTo)
+                rangeQuery.Lte = filter.To.Value;
+            else
+                rangeQuery.Lt = filter.To.Value;
+        }
+        
         return rangeQuery;
     }
 
     private static Query CreateIntegerRangeQuery(IntegerRangeFilter filter)
     {
         var rangeQuery = new NumberRangeQuery($"i_{filter.FieldName}");
+        
         if (filter.From.HasValue)
-            rangeQuery.Gte = filter.From.Value;
+        {
+            if (filter.IncludeFrom)
+                rangeQuery.Gte = filter.From.Value;
+            else
+                rangeQuery.Gt = filter.From.Value;
+        }
+        
         if (filter.To.HasValue)
-            rangeQuery.Lte = filter.To.Value;
+        {
+            if (filter.IncludeTo)
+                rangeQuery.Lte = filter.To.Value;
+            else
+                rangeQuery.Lt = filter.To.Value;
+        }
+        
         return rangeQuery;
+    }
+
+    private static Query CreateAndQuery(AndFilter filter)
+    {
+        var queries = filter.Filters.Select(ToElasticQuery).ToArray();
+        return new BoolQuery
+        {
+            Must = queries
+        };
+    }
+
+    private static Query CreateOrQuery(OrFilter filter)
+    {
+        var queries = filter.Filters.Select(ToElasticQuery).ToArray();
+        return new BoolQuery
+        {
+            Should = queries,
+            MinimumShouldMatch = 1
+        };
+    }
+
+    private static Query CreateNotQuery(NotFilter filter)
+    {
+        var innerQuery = ToElasticQuery(filter.Filter);
+        return new BoolQuery
+        {
+            MustNot = [innerQuery]
+        };
     }
 }

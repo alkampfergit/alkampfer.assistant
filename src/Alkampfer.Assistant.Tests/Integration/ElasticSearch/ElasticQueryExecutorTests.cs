@@ -13,12 +13,13 @@ namespace Alkampfer.Assistant.Tests.Integration.ElasticSearch;
 /// Integration tests for ElasticQueryExecutor.
 /// Requires ELASTIC_TEST_URL environment variable to be set to an Elasticsearch instance.
 /// </summary>
-public class ElasticQueryExecutorTests : IClassFixture<ElasticFixture>
+public class ElasticQueryExecutorTests : IClassFixture<ElasticServerAvailabilityFixture>, IClassFixture<ElasticFixture>
 {
     private readonly ElasticFixture _fixture;
 
-    public ElasticQueryExecutorTests(ElasticFixture fixture)
+    public ElasticQueryExecutorTests(ElasticServerAvailabilityFixture _avail, ElasticFixture fixture)
     {
+        // Availability fixture ensures the Elasticsearch URL is configured and reachable (fail-fast)
         _fixture = fixture;
     }
 

@@ -81,17 +81,32 @@ public interface IVectorQuery
     /// <summary>
     /// Adds a DateTime range filter.
     /// </summary>
-    IVectorQuery WhereDateRange(string fieldName, DateTime? from, DateTime? to);
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    IVectorQuery WhereDateRange(string fieldName, DateTime? from, DateTime? to, bool includeFrom = true, bool includeTo = true);
 
     /// <summary>
     /// Adds a numeric range filter.
     /// </summary>
-    IVectorQuery WhereRange(string fieldName, double? from, double? to);
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    IVectorQuery WhereRange(string fieldName, double? from, double? to, bool includeFrom = true, bool includeTo = true);
 
     /// <summary>
     /// Adds an integer range filter.
     /// </summary>
-    IVectorQuery WhereRange(string fieldName, int? from, int? to);
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    IVectorQuery WhereRange(string fieldName, int? from, int? to, bool includeFrom = true, bool includeTo = true);
 
     /// <summary>
     /// Adds an OR composite filter combining multiple filters.

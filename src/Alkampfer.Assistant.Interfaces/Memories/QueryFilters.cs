@@ -35,17 +35,47 @@ public record DateTimeEqualsFilter(string FieldName, DateTime Value) : IQueryFil
 /// <summary>
 /// Filter for DateTime range.
 /// </summary>
-public record DateTimeRangeFilter(string FieldName, DateTime? From, DateTime? To) : IQueryFilter;
+/// <param name="FieldName">The field name to filter on.</param>
+/// <param name="From">The start of the range (null for no lower bound).</param>
+/// <param name="To">The end of the range (null for no upper bound).</param>
+/// <param name="IncludeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+/// <param name="IncludeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+public record DateTimeRangeFilter(
+    string FieldName, 
+    DateTime? From, 
+    DateTime? To,
+    bool IncludeFrom = true,
+    bool IncludeTo = true) : IQueryFilter;
 
 /// <summary>
 /// Filter for numeric (double) range.
 /// </summary>
-public record NumericRangeFilter(string FieldName, double? From, double? To) : IQueryFilter;
+/// <param name="FieldName">The field name to filter on.</param>
+/// <param name="From">The start of the range (null for no lower bound).</param>
+/// <param name="To">The end of the range (null for no upper bound).</param>
+/// <param name="IncludeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+/// <param name="IncludeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+public record NumericRangeFilter(
+    string FieldName, 
+    double? From, 
+    double? To,
+    bool IncludeFrom = true,
+    bool IncludeTo = true) : IQueryFilter;
 
 /// <summary>
 /// Filter for integer range.
 /// </summary>
-public record IntegerRangeFilter(string FieldName, int? From, int? To) : IQueryFilter;
+/// <param name="FieldName">The field name to filter on.</param>
+/// <param name="From">The start of the range (null for no lower bound).</param>
+/// <param name="To">The end of the range (null for no upper bound).</param>
+/// <param name="IncludeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+/// <param name="IncludeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+public record IntegerRangeFilter(
+    string FieldName, 
+    int? From, 
+    int? To,
+    bool IncludeFrom = true,
+    bool IncludeTo = true) : IQueryFilter;
 
 /// <summary>
 /// Composite filter that combines multiple filters with AND logic.

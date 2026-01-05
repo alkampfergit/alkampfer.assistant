@@ -181,33 +181,96 @@ public class ElasticIndexer : ElasticBaseClient, IVectorIndexer
     {
         ElasticSearchConfiguration.ValidateIndexName(indexName);
 
+        // Use search with IDs filter and explicitly request vector fields
+        // Dense vector fields are NOT in _source by default, we need to request them via Fields
         var response = await _resiliencePipeline.ExecuteAsync(
-            async ct => await _client.GetAsync<object>(indexName, id, ct),
+            async ct => await _client.SearchAsync<object>(s => s
+                .Indices(indexName)
+                .Query(q => q
+                    .Ids(i => i
+                        .Values(new Elastic.Clients.Elasticsearch.Ids(new[] { id }))
+                    )
+                )
+                .Size(1)
+                .Fields(f => f
+                    .Field("*")      // All regular fields
+                    .Field("v_*")    // All vector fields (with v_ prefix)
+                )
+            , ct),
             cancellationToken);
 
         if (!response.IsValidResponse)
         {
-            // 404 means document not found - return null
-            if (response.ApiCallDetails.HttpStatusCode == 404)
-            {
-                return null;
-            }
-
-            // Other errors should be thrown
             throw new InvalidOperationException(
                 $"Failed to retrieve record '{id}' from index '{indexName}': {response.DebugInformation}");
         }
 
-        if (!response.Found || response.Source == null)
+        // Check if document was found
+        if (response.Hits.Count == 0)
         {
             return null;
         }
 
-        // Deserialize from JsonElement - vector fields are discovered via v_ prefix
-        var jsonDoc = System.Text.Json.JsonDocument.Parse(
-            System.Text.Json.JsonSerializer.Serialize(response.Source));
+        var hit = response.Hits.First();
+        if (hit.Source == null)
+        {
+            return null;
+        }
 
-        return VectorRecordExtensions.FromJsonElement(jsonDoc.RootElement);
+        // Deserialize from JsonElement
+        var jsonDoc = System.Text.Json.JsonDocument.Parse(
+            System.Text.Json.JsonSerializer.Serialize(hit.Source));
+
+        var record = VectorRecordExtensions.FromJsonElement(jsonDoc.RootElement);
+
+        // Extract vector fields from hit.Fields (vectors are NOT in _source)
+        if (hit.Fields != null)
+        {
+            foreach (var field in hit.Fields)
+            {
+                var fieldName = field.Key;
+                // Check if this is a vector field (starts with v_)
+                if (fieldName.StartsWith("v_") && fieldName.Length > 2)
+                {
+                    var vectorFieldName = fieldName[2..]; // Remove v_ prefix
+
+                    // field.Value is a LazyDocument - need to deserialize it
+                    try
+                    {
+                        var vectorJson = System.Text.Json.JsonSerializer.Serialize(field.Value);
+                        var deserializedValue = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(vectorJson);
+
+                        // Check if it's an array (could be wrapped in another array)
+                        if (deserializedValue.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            var firstElement = deserializedValue.EnumerateArray().FirstOrDefault();
+                            float[]? vector = null;
+
+                            // If first element is also an array, use it; otherwise use the whole array
+                            if (firstElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                            {
+                                vector = System.Text.Json.JsonSerializer.Deserialize<float[]>(firstElement.GetRawText());
+                            }
+                            else
+                            {
+                                vector = System.Text.Json.JsonSerializer.Deserialize<float[]>(vectorJson);
+                            }
+
+                            if (vector != null && vector.Length > 0)
+                            {
+                                record.WithVector(vectorFieldName, vector);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Skip fields that can't be deserialized
+                    }
+                }
+            }
+        }
+
+        return record;
     }
 
     /// <summary>

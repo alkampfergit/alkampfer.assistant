@@ -95,24 +95,39 @@ public class FilterBuilder
     /// <summary>
     /// Creates a DateTime range filter.
     /// </summary>
-    public IQueryFilter DateRange(string fieldName, DateTime? from, DateTime? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IQueryFilter DateRange(string fieldName, DateTime? from, DateTime? to, bool includeFrom = true, bool includeTo = true)
     {
-        return new DateTimeRangeFilter(fieldName, from, to);
+        return new DateTimeRangeFilter(fieldName, from, to, includeFrom, includeTo);
     }
 
     /// <summary>
     /// Creates a numeric (double) range filter.
     /// </summary>
-    public IQueryFilter NumericRange(string fieldName, double? from, double? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IQueryFilter NumericRange(string fieldName, double? from, double? to, bool includeFrom = true, bool includeTo = true)
     {
-        return new NumericRangeFilter(fieldName, from, to);
+        return new NumericRangeFilter(fieldName, from, to, includeFrom, includeTo);
     }
 
     /// <summary>
     /// Creates an integer range filter.
     /// </summary>
-    public IQueryFilter IntegerRange(string fieldName, int? from, int? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IQueryFilter IntegerRange(string fieldName, int? from, int? to, bool includeFrom = true, bool includeTo = true)
     {
-        return new IntegerRangeFilter(fieldName, from, to);
+        return new IntegerRangeFilter(fieldName, from, to, includeFrom, includeTo);
     }
 }

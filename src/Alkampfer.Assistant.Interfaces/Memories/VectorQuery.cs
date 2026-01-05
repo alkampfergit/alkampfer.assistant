@@ -156,11 +156,16 @@ public class VectorQuery : IVectorQuery
     /// <summary>
     /// Adds a DateTime range filter.
     /// </summary>
-    public IVectorQuery WhereDateRange(string fieldName, DateTime? from, DateTime? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IVectorQuery WhereDateRange(string fieldName, DateTime? from, DateTime? to, bool includeFrom = true, bool includeTo = true)
     {
         if (from.HasValue || to.HasValue)
         {
-            _filters.Add(new DateTimeRangeFilter(fieldName, from, to));
+            _filters.Add(new DateTimeRangeFilter(fieldName, from, to, includeFrom, includeTo));
         }
         return this;
     }
@@ -168,11 +173,16 @@ public class VectorQuery : IVectorQuery
     /// <summary>
     /// Adds a numeric range filter.
     /// </summary>
-    public IVectorQuery WhereRange(string fieldName, double? from, double? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IVectorQuery WhereRange(string fieldName, double? from, double? to, bool includeFrom = true, bool includeTo = true)
     {
         if (from.HasValue || to.HasValue)
         {
-            _filters.Add(new NumericRangeFilter(fieldName, from, to));
+            _filters.Add(new NumericRangeFilter(fieldName, from, to, includeFrom, includeTo));
         }
         return this;
     }
@@ -180,11 +190,16 @@ public class VectorQuery : IVectorQuery
     /// <summary>
     /// Adds an integer range filter.
     /// </summary>
-    public IVectorQuery WhereRange(string fieldName, int? from, int? to)
+    /// <param name="fieldName">The field name to filter on.</param>
+    /// <param name="from">The start of the range (null for no lower bound).</param>
+    /// <param name="to">The end of the range (null for no upper bound).</param>
+    /// <param name="includeFrom">True to include the From boundary (>=), false to exclude (>). Default is true.</param>
+    /// <param name="includeTo">True to include the To boundary (<=), false to exclude (<). Default is true.</param>
+    public IVectorQuery WhereRange(string fieldName, int? from, int? to, bool includeFrom = true, bool includeTo = true)
     {
         if (from.HasValue || to.HasValue)
         {
-            _filters.Add(new IntegerRangeFilter(fieldName, from, to));
+            _filters.Add(new IntegerRangeFilter(fieldName, from, to, includeFrom, includeTo));
         }
         return this;
     }

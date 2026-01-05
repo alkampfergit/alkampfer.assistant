@@ -12,13 +12,14 @@ namespace Alkampfer.Assistant.Tests.Integration.ElasticSearch;
 /// Integration tests for Elasticsearch vector field mapping and operations.
 /// Requires ELASTIC_TEST_URL environment variable to be set to an Elasticsearch instance.
 /// </summary>
-public class ElasticVectorFieldTests : IAsyncDisposable
+public class ElasticVectorFieldTests : IAsyncDisposable, IClassFixture<ElasticServerAvailabilityFixture>
 {
     private readonly ElasticIndexer _indexer;
     private readonly string _testIndexName;
 
-    public ElasticVectorFieldTests()
+    public ElasticVectorFieldTests(ElasticServerAvailabilityFixture _avail)
     {
+        // Availability fixture ensures the Elasticsearch URL is configured and reachable (fail-fast)
         DotEnv.Load();
         var elasticUrl = Environment.GetEnvironmentVariable("ELASTIC_TEST_URL");
         if (string.IsNullOrEmpty(elasticUrl))
