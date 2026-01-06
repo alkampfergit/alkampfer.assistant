@@ -9,11 +9,17 @@ namespace Alkampfer.Assistant.Interfaces.Memories;
 public class VectorQuery : IVectorQuery
 {
     private readonly List<IQueryFilter> _filters = new();
+    private VectorSearchParams? _vectorSearch;
 
     /// <summary>
     /// Gets or sets the full-text search query.
     /// </summary>
     public string? SearchText { get; set; }
+
+    /// <summary>
+    /// Gets the vector search parameters for KNN (K-Nearest Neighbors) search.
+    /// </summary>
+    public VectorSearchParams? VectorSearch => _vectorSearch;
 
     /// <summary>
     /// Gets or sets the maximum number of results to return.
@@ -43,6 +49,9 @@ public class VectorQuery : IVectorQuery
     /// </summary>
     public IVectorQuery WithSearchText(string searchText)
     {
+        if (_vectorSearch != null)
+            throw new InvalidOperationException("Cannot use both text search and vector search in the same query. They are mutually exclusive.");
+
         SearchText = searchText;
         return this;
     }
@@ -254,6 +263,65 @@ public class VectorQuery : IVectorQuery
                 _filters.Add(filter);
             }
         }
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the vector search parameters for KNN (K-Nearest Neighbors) search.
+    /// When specified, vector search replaces text search as the primary ranking mechanism.
+    /// Filters will execute inside the KNN algorithm for efficiency.
+    /// </summary>
+    /// <param name="vectorKey">The name/key of the vector field to search (e.g., "embedding", "title_embedding").</param>
+    /// <param name="queryVector">The query vector to find similar vectors for.</param>
+    /// <param name="topK">The maximum number of results to return. Default is 10.</param>
+    /// <returns>The current VectorQuery instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when vectorKey is null/empty, queryVector is null/empty, or topK is less than or equal to 0.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when text search is already set or vector search is already configured.</exception>
+    public IVectorQuery WithVectorSearch(string vectorKey, float[] queryVector, int topK = 10)
+    {
+        if (string.IsNullOrWhiteSpace(vectorKey))
+            throw new ArgumentException("VectorKey cannot be null or empty.", nameof(vectorKey));
+        if (queryVector == null || queryVector.Length == 0)
+            throw new ArgumentException("QueryVector cannot be null or empty.", nameof(queryVector));
+        if (topK <= 0)
+            throw new ArgumentException("TopK must be greater than 0.", nameof(topK));
+        if (!string.IsNullOrEmpty(SearchText))
+            throw new InvalidOperationException("Cannot use both text search and vector search in the same query. They are mutually exclusive.");
+        if (_vectorSearch != null)
+            throw new InvalidOperationException("Vector search is already configured for this query. Only one vector search per query is supported.");
+
+        _vectorSearch = new VectorSearchParams(vectorKey, queryVector, topK, null);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the vector search parameters for KNN (K-Nearest Neighbors) search with explicit NumCandidates.
+    /// When specified, vector search replaces text search as the primary ranking mechanism.
+    /// Filters will execute inside the KNN algorithm for efficiency.
+    /// </summary>
+    /// <param name="vectorKey">The name/key of the vector field to search (e.g., "embedding", "title_embedding").</param>
+    /// <param name="queryVector">The query vector to find similar vectors for.</param>
+    /// <param name="topK">The maximum number of results to return.</param>
+    /// <param name="numCandidates">Number of candidates to consider during KNN search. Must be >= topK. Higher values improve recall but increase query time.</param>
+    /// <returns>The current VectorQuery instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when parameters are invalid.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when text search is already set or vector search is already configured.</exception>
+    public IVectorQuery WithVectorSearch(string vectorKey, float[] queryVector, int topK, int numCandidates)
+    {
+        if (string.IsNullOrWhiteSpace(vectorKey))
+            throw new ArgumentException("VectorKey cannot be null or empty.", nameof(vectorKey));
+        if (queryVector == null || queryVector.Length == 0)
+            throw new ArgumentException("QueryVector cannot be null or empty.", nameof(queryVector));
+        if (topK <= 0)
+            throw new ArgumentException("TopK must be greater than 0.", nameof(topK));
+        if (numCandidates < topK)
+            throw new ArgumentException($"NumCandidates ({numCandidates}) must be greater than or equal to TopK ({topK}).", nameof(numCandidates));
+        if (!string.IsNullOrEmpty(SearchText))
+            throw new InvalidOperationException("Cannot use both text search and vector search in the same query. They are mutually exclusive.");
+        if (_vectorSearch != null)
+            throw new InvalidOperationException("Vector search is already configured for this query. Only one vector search per query is supported.");
+
+        _vectorSearch = new VectorSearchParams(vectorKey, queryVector, topK, numCandidates);
         return this;
     }
 }

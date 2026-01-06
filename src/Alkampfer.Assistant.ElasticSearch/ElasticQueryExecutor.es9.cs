@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +39,16 @@ public class ElasticQueryExecutor : ElasticBaseClient, IVectorQueryExecutor
 
         if (query == null)
             throw new ArgumentNullException(nameof(query));
+
+        // If vector search is specified, use KNN search with filters
+        if (query.VectorSearch != null)
+        {
+            return await ExecuteKnnQueryWithFiltersAsync(
+                indexName,
+                query.VectorSearch,
+                query.Filters,
+                cancellationToken);
+        }
 
         // Build the Elasticsearch query
         var elasticQuery = BuildElasticQuery(query);
@@ -152,6 +163,97 @@ public class ElasticQueryExecutor : ElasticBaseClient, IVectorQueryExecutor
         }
 
         return results;
+    }
+
+    /// <summary>
+    /// Executes a KNN search with filters applied inside the KNN algorithm.
+    /// </summary>
+    /// <param name="indexName">The name of the index to search.</param>
+    /// <param name="vectorSearch">The vector search parameters.</param>
+    /// <param name="filters">The filters to apply inside the KNN algorithm.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A VectorQueryResult containing matching records and metadata.</returns>
+    private async Task<VectorQueryResult> ExecuteKnnQueryWithFiltersAsync(
+        string indexName,
+        VectorSearchParams vectorSearch,
+        IReadOnlyList<IQueryFilter> filters,
+        CancellationToken cancellationToken)
+    {
+        // Build filter query from all filters
+        Query? filterQuery = null;
+        if (filters.Count > 0)
+        {
+            var elasticFilters = filters
+                .Select(ElasticQueryFilterConverter.ToElasticQuery)
+                .ToArray();
+
+            filterQuery = elasticFilters.Length == 1
+                ? elasticFilters[0]
+                : new BoolQuery { Must = elasticFilters };
+        }
+
+        // Calculate NumCandidates with sensible default
+        // For filtered queries, we use a higher multiplier than the default topK * 2
+        // to maintain good recall when filters eliminate many candidates
+        int numCandidates = vectorSearch.NumCandidates
+            ?? Math.Max(100, vectorSearch.TopK * 10);
+
+        // Build KNN search with filters running inside the algorithm
+        var knnSearch = new KnnSearch
+        {
+            Field = $"v_{vectorSearch.VectorKey}",
+            QueryVector = vectorSearch.QueryVector,
+            K = vectorSearch.TopK,
+            NumCandidates = numCandidates
+        };
+
+        // Add filter to KNN search if present
+        if (filterQuery != null)
+        {
+            knnSearch.Filter = new List<Query> { filterQuery };
+        }
+
+        knnSearch.RescoreVector = new RescoreVector
+        {
+            Oversample = 2
+        };
+
+        // Create search request
+        var searchRequest = new SearchRequest(indexName)
+        {
+            Knn = new List<KnnSearch> { knnSearch },
+            Size = vectorSearch.TopK,
+            TrackTotalHits = new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true)
+        };
+
+        // Execute search with resilience
+        var response = await _resiliencePipeline.ExecuteAsync(
+            async ct => await _client.SearchAsync<object>(searchRequest, ct),
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"KNN query execution failed: {response.DebugInformation}");
+        }
+
+        // Convert results to VectorRecords
+        var records = new List<VectorRecord>();
+        foreach (var hit in response.Hits)
+        {
+            if (hit.Source != null)
+            {
+                var jsonDoc = JsonDocument.Parse(
+                    JsonSerializer.Serialize(hit.Source));
+                var record = VectorRecordExtensions.FromJsonElement(jsonDoc.RootElement);
+                records.Add(record);
+            }
+        }
+
+        var totalCount = response.Total;
+        var executionTime = response.Took;
+
+        return new VectorQueryResult(records, totalCount, executionTime);
     }
 
     /// <summary>

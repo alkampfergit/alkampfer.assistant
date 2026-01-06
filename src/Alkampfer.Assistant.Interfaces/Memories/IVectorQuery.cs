@@ -29,6 +29,12 @@ public interface IVectorQuery
     IReadOnlyList<IQueryFilter> Filters { get; }
 
     /// <summary>
+    /// Gets the vector search parameters for KNN (K-Nearest Neighbors) search.
+    /// When set, vector search replaces text search as the primary ranking mechanism.
+    /// </summary>
+    VectorSearchParams? VectorSearch { get; }
+
+    /// <summary>
     /// Sets the full-text search query.
     /// </summary>
     IVectorQuery WithSearchText(string searchText);
@@ -127,4 +133,15 @@ public interface IVectorQuery
     /// Adds a filter using the FilterBuilder for complex query construction.
     /// </summary>
     IVectorQuery Where(Func<FilterBuilder, IQueryFilter> buildFilter);
+
+    /// <summary>
+    /// Sets the vector search parameters for KNN (K-Nearest Neighbors) search.
+    /// When specified, vector search replaces text search as the primary ranking mechanism.
+    /// </summary>
+    IVectorQuery WithVectorSearch(string vectorKey, float[] queryVector, int topK = 10);
+
+    /// <summary>
+    /// Sets the vector search parameters for KNN (K-Nearest Neighbors) search with explicit NumCandidates.
+    /// </summary>
+    IVectorQuery WithVectorSearch(string vectorKey, float[] queryVector, int topK, int numCandidates);
 }
