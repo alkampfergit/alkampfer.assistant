@@ -44,7 +44,6 @@ dotnet test "src/Alkampfer.Assistant.Tests/Alkampfer.Assistant.Tests.csproj" `
     --results-directory "$testResultsDir" `
     --logger "trx;LogFileName=unittests.trx" `
     --no-restore `
-    --filter "Category!=RequiresMongoDB&Category!=Integration" `
     -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
 Assert-LastExecution -message "Error in test running." -haltExecution $true

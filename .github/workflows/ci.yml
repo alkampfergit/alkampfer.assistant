@@ -5,6 +5,9 @@ on:
       - master
       - develop
       - hotfix/*
+      - release/*
+      - feature/*
+      
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -16,18 +19,24 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     services:
       mongodb:
-        image: mongo
+        image: mongo:6.0
         ports:
           - 27017:27017
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
+        ports:
+          - 9200:9200
         env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: testp$ssword
+          discovery.type: single-node
+          xpack.security.enabled: false
+          ES_JAVA_OPTS: -Xms1g -Xmx1g
     env:
       AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       AZURE_MODEL: gpt-4
       AZURE_EMBEDDING_MODEL: text-embedding-ada-002
-      TEST_MONGO_INSTANCE: mongodb://admin:testp$ssword@localhost:27017/alkampfer_assistant_test?authSource=admin
+      TEST_MONGO_INSTANCE: mongodb://localhost:27017/test
+      ELASTIC_TEST_URL: http://localhost:9200
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
    
     steps:
@@ -65,4 +74,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: TestResults/
+          path: |
+            TestResults/**/*.trx
+            TestResults/**/*.xml
+          if-no-files-found: warn
