@@ -5,7 +5,14 @@
       "Bash(dotnet test:*)",
       "Bash(find:*)",
       "Bash(git -C /Users/gianmariaricci/develop/github/alkampfer.assistant log --oneline -20)",
-      "Bash(git -C /Users/gianmariaricci/develop/github/alkampfer.assistant diff master...feature/rag_vector --name-only)"
+      "Bash(git -C /Users/gianmariaricci/develop/github/alkampfer.assistant diff master...feature/rag_vector --name-only)",
+      "Bash(gh api:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

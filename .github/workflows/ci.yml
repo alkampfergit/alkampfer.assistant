@@ -69,12 +69,19 @@ jobs:
         run: |
           ./build.ps1 -configuration "debug"
 
+      - name: Flatten TRX files
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p flattened-trx
+          find TestResults -name "*.trx" -type f -exec cp {} flattened-trx/ \;
+          echo "Found $(find flattened-trx -name '*.trx' | wc -l) TRX files"
+          ls -la flattened-trx/ || true
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: |
-            TestResults/**/*.trx
-            TestResults/**/*.xml
+          path: flattened-trx/
           if-no-files-found: warn

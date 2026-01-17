@@ -1,0 +1,49 @@
+name: 'Test Report'
+on:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+concurrency:
+  group: test-report-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    # Run on both success and failure, skip only if cancelled
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Triggering Workflow
+        run: |
+          echo "Triggered by workflow run:"
+          echo "  Run ID: ${{ github.event.workflow_run.id }}"
+          echo "  Workflow Name: ${{ github.event.workflow_run.name }}"
+          echo "  Head SHA: ${{ github.event.workflow_run.head_sha }}"
+          echo "  Head Branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "  Conclusion: ${{ github.event.workflow_run.conclusion }}"
+
+      - name: Download test results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: List downloaded files
+        run: |
+          echo "Downloaded test results:"
+          find . -name "*.trx" -o -name "*.xml" | head -20
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: '**/*.trx'
+          reporter: dotnet-trx
