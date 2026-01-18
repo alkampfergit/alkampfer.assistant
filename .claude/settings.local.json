@@ -12,7 +12,12 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== Run $i ===\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(git merge-base:*)"
     ],
     "deny": [],
     "ask": []

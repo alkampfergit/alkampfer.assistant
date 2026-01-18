@@ -47,8 +47,9 @@ jobs:
           find . -name "*.trx" -o -name "*.xml" | head -20
 
       - name: Publish Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v1.9.1
         with:
           name: Test Results
           path: '**/*.trx'
           reporter: dotnet-trx
+          use-actions-summary: 'true'
