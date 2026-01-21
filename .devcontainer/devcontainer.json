@@ -9,6 +9,9 @@
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/sshd:1": {
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
 		}
 	},
 	"customizations": {
@@ -37,7 +40,7 @@
 		"ELASTIC_TEST_URL": "http://elasticsearch:9200",
 		"AZURE_EMBEDDING_INFERENCE_MODEL": "text-embedding-3-small"
 	},
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-flow"
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-flow && bash .devcontainer/setup-git-aliases.sh && npm install -g @anthropic-ai/claude-code"
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

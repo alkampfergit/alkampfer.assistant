@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Example configuration file for Alkampfer Assistant. Rename to 'alkampfer.assistant.json' to use.",
+  "Database": {
+    "Type": "LiteDb",
+    "ConnectionString": "./data/assistant.db"
+  },
+  "FileStore": {
+    "Type": "Local",
+    "BasePath": "./data/files"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}

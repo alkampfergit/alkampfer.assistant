@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Example MongoDB configuration. Rename to 'alkampfer.assistant.json' to use MongoDB instead of LiteDB.",
+  "Database": {
+    "Type": "MongoDb",
+    "ConnectionString": "mongodb://localhost:27017/alkampfer_assistant"
+  },
+  "FileStore": {
+    "Type": "Local",
+    "BasePath": "./data/files"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}

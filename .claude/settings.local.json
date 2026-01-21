@@ -17,9 +17,18 @@
       "Bash(dotnet nuget list:*)",
       "Bash(nuget search:*)",
       "Bash(dotnet package search:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(git config:*)",
+      "Bash(git logr:*)",
+      "Bash(claude mcp add playwright npx \"@playwright/mcp@latest\")",
+      "Bash(dotnet run:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }
