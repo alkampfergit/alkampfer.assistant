@@ -34,8 +34,11 @@
 		"TEST_MONGO_INSTANCE": "mongodb://mongodb/test",
 		"AZURE_MODEL": "gpt-5-nano",
 		"AZURE_EMBEDDING_MODEL": "text-embedding-3-small",
-		"ELASTIC_TEST_URL": "http://elasticsearch:9200"
-	}
+		"ELASTIC_TEST_URL": "http://elasticsearch:9200",
+		"AZURE_EMBEDDING_INFERENCE_MODEL": "text-embedding-3-small"
+	},
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-flow"
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

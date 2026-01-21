@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" />
     <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="Azure.AI.Inference" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="OpenAI" />

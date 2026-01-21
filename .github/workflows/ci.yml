@@ -33,12 +33,13 @@ jobs:
     env:
       AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      AZURE_MODEL: gpt-5-nano
-      AZURE_EMBEDDING_MODEL: text-embedding-3-small
+      AZURE_MODEL: gpt-4
+      AZURE_EMBEDDING_MODEL: text-embedding-ada-002
       TEST_MONGO_INSTANCE: mongodb://localhost:27017/test
       ELASTIC_TEST_URL: http://localhost:9200
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-   
+      AZURE_EMBEDDING_INFERENCE_MODEL: text-embedding-3-small
+      
     steps:
 
       - uses: actions/checkout@v3

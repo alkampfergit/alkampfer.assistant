@@ -43,7 +43,7 @@ public class ElasticKnnDotProductFixture : IAsyncLifetime
 		Indexer = new ElasticIndexer(config);
 		QueryExecutor = new ElasticQueryExecutor(config);
 
-		TestIndexName = $"test-knn-dotproduct-{Guid.NewGuid():N}";
+		TestIndexName = $"aatest-knn-dotproduct-{Guid.NewGuid():N}";
 		_indexesToCleanup.Add(TestIndexName);
 
 		// Create index and register vector field with DOT PRODUCT similarity

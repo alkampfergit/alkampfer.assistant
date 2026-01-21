@@ -46,7 +46,7 @@ public class ElasticIndexerTests : IAsyncDisposable
         _indexer = new ElasticIndexer(config);
 
         // Generate unique test index name
-        _testIndexName = $"test-vector-{Guid.NewGuid():N}";
+        _testIndexName = $"aatest-vector-{Guid.NewGuid():N}";
 
         // Fast-fail: ping Elasticsearch to ensure it's available
         try
@@ -90,7 +90,7 @@ public class ElasticIndexerTests : IAsyncDisposable
 
     private string CreateTestIndex()
     {
-        var indexName = $"test-vector-{Guid.NewGuid():N}";
+        var indexName = $"aatest-vector-{Guid.NewGuid():N}";
         _indexesToCleanup.Add(indexName);
         return indexName;
     }

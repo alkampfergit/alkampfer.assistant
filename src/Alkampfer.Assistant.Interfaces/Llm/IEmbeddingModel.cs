@@ -9,16 +9,16 @@ public interface IEmbeddingModel
     /// Generates embeddings for multiple text inputs.
     /// </summary>
     /// <param name="texts">The collection of texts to embed.</param>
-    /// <param name="textType">The type of text being embedded (e.g., document, query). Some models may use this to optimize embeddings.</param>
+    /// <param name="options">Options for configuring the embedding generation. If null, default options are used.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>An <see cref="EmbeddingResponse"/> containing the embedding vectors in the same order as the input texts.</returns>
     /// <remarks>
     /// The returned embeddings are in the same order as the input texts.
-    /// Not all embedding models support the <paramref name="textType"/> parameter; it may be ignored by some implementations.
+    /// Not all embedding models support all options; unsupported options may be ignored by some implementations.
     /// </remarks>
     Task<EmbeddingResponse> GenerateEmbeddingsAsync(
         IEnumerable<string> texts,
-        EmbeddingTextType textType = EmbeddingTextType.Neutral,
+        EmbeddingOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

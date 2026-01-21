@@ -14,6 +14,8 @@ public class ElasticServerAvailabilityFixture
     private static readonly object _lock = new();
     private static bool _checked;
     private static Exception? _failure;
+    // Guard to ensure cleanup runs only once per process
+    private static int _cleanupPerformed;
 
     public ElasticServerAvailabilityFixture()
     {
@@ -55,6 +57,31 @@ public class ElasticServerAvailabilityFixture
                 {
                     _failure = new InvalidOperationException($"Elasticsearch at {url} returned status code {resp.StatusCode}.");
                     throw _failure;
+                }
+
+                // Optional global cleanup: only run once per test process and only when explicitly enabled
+                if (Environment.GetEnvironmentVariable("ELASTIC_TEST_CLEANUP") == "true")
+                {
+                    // Ensure cleanup runs only once across threads
+                    if (Interlocked.Exchange(ref _cleanupPerformed, 1) == 0)
+                    {
+                        try
+                        {
+                            var esClient = TestIndexUtils.CreateClientFromEnv();
+                            // Only delete indices that are safe to delete - skip system indices starting with '.'
+                            var deleted = TestIndexUtils.CleanupAllIndicesAsync(esClient, force: false, skipPredicate: name => name.StartsWith('.')).GetAwaiter().GetResult();
+                            if (deleted != null)
+                            {
+                                foreach (var d in deleted)
+                                    Console.WriteLine($"Deleted test index during startup cleanup: {d}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Do not fail the availability check if cleanup fails; just log
+                            Console.WriteLine($"Elastic test cleanup failed: {ex.Message}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)

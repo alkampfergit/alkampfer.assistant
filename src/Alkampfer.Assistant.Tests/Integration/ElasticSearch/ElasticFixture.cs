@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Alkampfer.Assistant.Core;
 using Alkampfer.Assistant.ElasticSearch;
 using Alkampfer.Assistant.Interfaces.Memories;
+using static Alkampfer.Assistant.Tests.Integration.ElasticSearch.TestIndexUtils;
 
 namespace Alkampfer.Assistant.Tests.Integration.ElasticSearch;
 
@@ -41,8 +42,11 @@ public class ElasticFixture : IAsyncLifetime
 		Indexer = new ElasticIndexer(config);
 		QueryExecutor = new ElasticQueryExecutor(config);
 
-		TestIndexName = $"test-query-{Guid.NewGuid():N}";
+		TestIndexName = $"aatest-query-{Guid.NewGuid():N}";
 		EmptyIndexName = $"{TestIndexName}-empty";
+
+		// Validate that the test index follows the test naming convention
+		AssertIsTestIndexName(TestIndexName);
 
 		_indexesToCleanup.Add(TestIndexName);
 		_indexesToCleanup.Add(EmptyIndexName);

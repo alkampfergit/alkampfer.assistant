@@ -40,7 +40,7 @@ public class ElasticVectorFieldTests : IAsyncDisposable, IClassFixture<ElasticSe
         };
 
         _indexer = new ElasticIndexer(config);
-        _testIndexName = $"test-vector-field-{Guid.NewGuid():N}";
+        _testIndexName = $"aatest-vector-field-{Guid.NewGuid():N}";
     }
 
     public async ValueTask DisposeAsync()

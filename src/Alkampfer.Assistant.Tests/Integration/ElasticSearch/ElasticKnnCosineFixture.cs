@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Alkampfer.Assistant.Core;
+using static Alkampfer.Assistant.Tests.Integration.ElasticSearch.TestIndexUtils;
 using Alkampfer.Assistant.ElasticSearch;
 using Alkampfer.Assistant.Interfaces.Memories;
 
@@ -43,7 +44,7 @@ public class ElasticKnnCosineFixture : IAsyncLifetime
 		Indexer = new ElasticIndexer(config);
 		QueryExecutor = new ElasticQueryExecutor(config);
 
-		TestIndexName = $"test-knn-cosine-{Guid.NewGuid():N}";
+		TestIndexName = $"aatest-knn-cosine-{Guid.NewGuid():N}";
 		_indexesToCleanup.Add(TestIndexName);
 
 		// Create index and register vector field with COSINE similarity

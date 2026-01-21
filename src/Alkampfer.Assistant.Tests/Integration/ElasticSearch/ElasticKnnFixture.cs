@@ -42,7 +42,7 @@ public class ElasticKnnFixture : IAsyncLifetime
 		Indexer = new ElasticIndexer(config);
 		QueryExecutor = new ElasticQueryExecutor(config);
 
-		TestIndexName = $"test-knn-{Guid.NewGuid():N}";
+		TestIndexName = $"aatest-knn-{Guid.NewGuid():N}";
 		_indexesToCleanup.Add(TestIndexName);
 
 		// Create index and register vector field

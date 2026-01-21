@@ -68,7 +68,7 @@ public class OpenAiEmbeddingModel : IEmbeddingModel
     /// <inheritdoc/>
     public async Task<EmbeddingResponse> GenerateEmbeddingsAsync(
         IEnumerable<string> texts,
-        EmbeddingTextType textType = EmbeddingTextType.Neutral,
+        EmbeddingOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(texts);
@@ -79,9 +79,24 @@ public class OpenAiEmbeddingModel : IEmbeddingModel
             throw new ArgumentException("At least one text must be provided.", nameof(texts));
         }
 
-        // Note: OpenAI text-embedding-3 models don't support the textType parameter
-        // The textType parameter is ignored for now
-        var response = await _embeddingClient.GenerateEmbeddingsAsync(textList, cancellationToken: cancellationToken);
+        options ??= EmbeddingOptions.Default;
+
+        // Create embedding generation options
+        var embeddingOptions = new EmbeddingGenerationOptions();
+
+        // Set dimensions if specified (supported by text-embedding-3 models)
+        if (options.Dimensions.HasValue)
+        {
+            embeddingOptions.Dimensions = options.Dimensions.Value;
+        }
+
+        // Note: OpenAI text-embedding-3 models don't support the TextType parameter
+        // The TextType parameter from options is intentionally ignored
+
+        var response = await _embeddingClient.GenerateEmbeddingsAsync(
+            textList,
+            embeddingOptions,
+            cancellationToken: cancellationToken);
 
         var embeddings = new List<ReadOnlyMemory<float>>();
         foreach (var item in response.Value)
